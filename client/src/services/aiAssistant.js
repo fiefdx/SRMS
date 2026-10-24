@@ -16,6 +16,7 @@
 
 import { SIMULATED_QA, INTENTS, FALLBACK_RESPONSES, RESTAURANT_INFO } from '../data/aiKnowledgeBase.js';
 import { formatMoney } from '../utils/helpers.js';
+import { orderedFrequency } from '../utils/analytics.js';
 
 const QA_PRECEDENCE = 1.25;
 const STOP_WORDS = new Set([
@@ -92,18 +93,6 @@ function priceRange(items) {
   if (items.length === 0) return 'no items';
   const prices = items.map((item) => item.price);
   return `${formatMoney(Math.min(...prices))} – ${formatMoney(Math.max(...prices))}`;
-}
-
-function orderedFrequency(orders) {
-  const counts = new Map();
-  orders
-    .filter((order) => order.status !== 'cancelled')
-    .forEach((order) => {
-      order.items.forEach((line) => {
-        counts.set(line.name, (counts.get(line.name) ?? 0) + line.quantity);
-      });
-    });
-  return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
 /* ------------------------------------------------- answer builders (context) */
@@ -189,7 +178,7 @@ function buildContext({ menuItems, orders, preferences }) {
 
     recommendations() {
       const ranked = orderedFrequency(orders);
-      const fromHistory = ranked[0];
+      const fromHistory = ranked[0] ? [ranked[0].name, ranked[0].quantity] : null;
       const popularItem = [...menu].sort((a, b) => Number(b.popular) - Number(a.popular))[0];
 
       if (fromHistory && popularItem && fromHistory[0] === popularItem.name) {
