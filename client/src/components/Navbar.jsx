@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../hooks/useApp';
 
 /**
  * Navigation demonstrates:

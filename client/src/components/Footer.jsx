@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { RESTAURANT_INFO } from '../data/aiKnowledgeBase';
 
 export default function Footer() {
-  const year = new Date().getFullYear();
+  // Kept in state so no impure Date call happens during a render pass.
+  const [year] = useState(() => new Date().getFullYear());
   return (
     <footer className="footer">
       <div className="container footer-inner">

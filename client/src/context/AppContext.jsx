@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { AppContext } from './appStore';
 import usePersistentState from '../hooks/usePersistentState';
 import { MENU_ITEMS, TABLES } from '../data/menuData';
 import { SEED_ORDERS, SEED_RESERVATIONS, SEED_FEEDBACK } from '../data/seedData';
@@ -11,8 +12,6 @@ import { calcTotals, makeId, nextNumber } from '../utils/helpers';
  * mutation is exposed as a named function. Components never touch the arrays directly, which keeps
  * the logic in one place and makes the swap to REST calls in Assignment 2 a one-file change.
  */
-
-const AppContext = createContext(null);
 
 const ADMIN_EMAILS = ['admin@srms.dev'];
 
@@ -319,12 +318,4 @@ export function AppProvider({ children }) {
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
-
-export function useApp() {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used inside <AppProvider>.');
-  }
-  return context;
 }

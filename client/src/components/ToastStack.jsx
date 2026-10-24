@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../hooks/useApp';
 
 const AUTO_DISMISS_MS = 4500;
 

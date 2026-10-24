@@ -31,7 +31,7 @@ export default function usePersistentState(key, initialValue) {
     } catch (error) {
       console.warn(`usePersistentState: could not save "${key}"`, error);
     }
-  }, [storageKey, value]);
+  }, [storageKey, key, value]);
 
   return [value, setValue];
 }
