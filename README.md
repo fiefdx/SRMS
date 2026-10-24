@@ -28,18 +28,46 @@ Admin side
 - Reservation/event management (approve, cancel).
 - Analytics: orders per day (7-day bar chart), revenue, popular items, feedback summary.
 
-## Run
+## Run and verify
 
 ```bash
 cd client
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # production build
+npm run dev       # http://localhost:5173
+npm run lint      # oxlint (clean)
+npm run check:ai  # verifies the AI question/response pairs required by the brief
+npm run build     # production build to client/dist
+npm run preview   # serve the production build
 ```
 
-Admin demo access: sign in with email `admin@srms.dev` (or tick "Sign in as administrator").
+Admin demo access: open `/account` and tick **Sign in as administrator** (or sign in with
+`admin@srms.dev`). The admin dashboard has a **Restore demo data** button to reset the app before a
+recording.
+
+Data is kept in `localStorage` during Assignment 1; clear the site storage to remove the demo
+account as well.
+
+## Repository layout
+
+```
+client/                 React + Vite frontend (Assignment 1)
+  src/data              menu, tables, opening hours, seed records, AI knowledge base
+  src/context           single app store (cart, orders, reservations, feedback, user, toasts)
+  src/hooks             usePersistentState, useMenuFilters, useChat
+  src/services          simulated AI assistant engine
+  src/utils             money/total/date/validation helpers + admin analytics
+  src/components        reusable prop-driven components
+  src/pages             customer pages + admin/ dashboard pages
+  scripts/              checkAssistant.mjs (npm run check:ai)
+docs/ASSIGNMENT1.md     brief-to-code map, rubric coverage, limitations, demo notes
+server/                 Node.js + Express backend (added in Assignment 2)
+```
 
 ## Tech
 
-React 19 + Vite, React Router 7, plain CSS. State is kept in a React context and persisted to
-`localStorage` for Assignment 1; it will be replaced by REST calls in Assignment 2.
+React 19, Vite, React Router 7, plain CSS (design tokens in `client/src/index.css`). No UI library,
+no backend calls yet: Assignment 2 adds Express + a database and the frontend switches from
+`usePersistentState` to REST calls.
+
+See [docs/ASSIGNMENT1.md](docs/ASSIGNMENT1.md) for the full mapping between the assignment brief and
+the code.
