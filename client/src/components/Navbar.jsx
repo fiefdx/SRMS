@@ -8,7 +8,7 @@ import { useApp } from '../hooks/useApp';
  *  - derived state (cart badge) read from the context
  */
 export default function Navbar() {
-  const { cartCount, user, signOut, notifications } = useApp();
+  const { cartCount, user, signOut } = useApp();
 
   const customerLinks = [
     { to: '/menu', label: 'Menu' },
@@ -74,12 +74,6 @@ export default function Navbar() {
           )}
         </nav>
       </div>
-
-      {notifications.length > 0 && (
-        <div className="container small muted" aria-hidden="true">
-          {notifications.length} notification{notifications.length > 1 ? 's' : ''} this session
-        </div>
-      )}
     </header>
   );
 }

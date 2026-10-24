@@ -8,7 +8,7 @@ import { feedbackSummary, ordersByDay, orderedFrequency, reservationSummary, rev
 import { formatDate, formatMoney } from '../../utils/helpers';
 
 export default function AdminDashboard() {
-  const { orders, reservations, feedback, menuItems } = useApp();
+  const { orders, reservations, feedback, menuItems, resetDemoData, notify } = useApp();
 
   // All analytics is derived with useMemo: nothing is stored twice.
   const stats = useMemo(() => revenueSummary(orders), [orders]);
@@ -25,6 +25,22 @@ export default function AdminDashboard() {
 
   return (
     <div className="grid" style={{ gap: '1.25rem' }}>
+      <div className="btn-row">
+        <button
+          className="btn small ghost"
+          onClick={() => {
+            resetDemoData();
+            notify('Demo data restored — menu, orders, bookings and feedback are back to the seeded state.', 'info');
+          }}
+        >
+          Restore demo data
+        </button>
+        <span className="small muted">
+          Useful when recording a demonstration: everything is stored in localStorage and can be reset
+          in one click.
+        </span>
+      </div>
+
       <section className="grid grid-4">
         <StatCard label="Active orders" value={stats.orders} hint={`${stats.open} still in the kitchen`} />
         <StatCard label="Revenue (active orders)" value={formatMoney(stats.revenue)} hint={`${stats.cancelled} cancelled`} />

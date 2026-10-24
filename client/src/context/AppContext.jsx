@@ -224,6 +224,15 @@ export function AppProvider({ children }) {
 
   const resetMenu = useCallback(() => setMenuItems(MENU_ITEMS), [setMenuItems]);
 
+  /** Handy when recording a demo: puts every collection back to its seeded state. */
+  const resetDemoData = useCallback(() => {
+    setMenuItems(MENU_ITEMS);
+    setOrders(SEED_ORDERS);
+    setReservations(SEED_RESERVATIONS);
+    setFeedback(SEED_FEEDBACK);
+    setCart([]);
+  }, [setMenuItems, setOrders, setReservations, setFeedback, setCart]);
+
   /* ----------------------------------------------------------- account (demo) */
 
   const signIn = useCallback(
@@ -300,6 +309,7 @@ export function AppProvider({ children }) {
       deleteMenuItem,
       toggleAvailability,
       resetMenu,
+      resetDemoData,
       signIn,
       signOut,
       toggleFavourite,
@@ -312,7 +322,7 @@ export function AppProvider({ children }) {
       menuItems, cart, cartCount, cartTotals, orders, reservations, feedback, user, preferences,
       notifications, addToCart, removeFromCart, updateQuantity, clearCart, placeOrder,
       updateOrderStatus, cancelOrder, findAvailableTable, createReservation, updateReservationStatus,
-      deleteReservation, saveMenuItem, deleteMenuItem, toggleAvailability, resetMenu, signIn,
+      deleteReservation, saveMenuItem, deleteMenuItem, toggleAvailability, resetMenu, resetDemoData, signIn,
       signOut, toggleFavourite, setDietaryPreferences, addFeedback, notify, dismissNotification,
     ],
   );
