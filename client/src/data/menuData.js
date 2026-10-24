@@ -368,6 +368,98 @@ export const MENU_ITEMS = [
   },
 ];
 
+/** Emoji picker options for the admin menu editor: pick an icon instead of copy-pasting one. */
+export const MENU_EMOJIS = [
+  {
+    group: 'Starters & soups',
+    items: [
+      { emoji: "🥗", label: "Salad" },
+      { emoji: "🍅", label: "Tomato / bruschetta" },
+      { emoji: "🥖", label: "Bread" },
+      { emoji: "🦑", label: "Calamari" },
+      { emoji: "🌶️", label: "Pepper / spicy" },
+      { emoji: "🍲", label: "Soup / curry" },
+      { emoji: "🍆", label: "Aubergine / eggplant" },
+      { emoji: "🍞", label: "Toast" },
+      { emoji: "🧀", label: "Cheese" },
+      { emoji: "🥔", label: "Potato / fries" },
+      { emoji: "🥬", label: "Leafy greens" },
+      { emoji: "🧄", label: "Garlic" },
+      { emoji: "🧅", label: "Onion" },
+    ],
+  },
+  {
+    group: 'Mains',
+    items: [
+      { emoji: "🍝", label: "Pasta" },
+      { emoji: "🍕", label: "Pizza" },
+      { emoji: "🐟", label: "Fish" },
+      { emoji: "🦐", label: "Shrimp / prawns" },
+      { emoji: "🍚", label: "Rice / bowl" },
+      { emoji: "🍔", label: "Burger" },
+      { emoji: "🌮", label: "Taco / wrap" },
+      { emoji: "🍗", label: "Chicken" },
+      { emoji: "🥩", label: "Cut of meat" },
+      { emoji: "🌭", label: "Hot dog" },
+      { emoji: "🥟", label: "Dumpling" },
+      { emoji: "🥙", label: "Stuffed flatbread" },
+      { emoji: "🍳", label: "Eggs / breakfast" },
+      { emoji: "🫘", label: "Beans / lentils" },
+      { emoji: "🔥", label: "Hot / flame" },
+      { emoji: "🍱", label: "Bento / box" },
+    ],
+  },
+  {
+    group: 'Desserts',
+    items: [
+      { emoji: "🍫", label: "Chocolate" },
+      { emoji: "🍰", label: "Cake" },
+      { emoji: "🍮", label: "Pudding / custard" },
+      { emoji: "🍨", label: "Ice cream" },
+      { emoji: "🍧", label: "Shaved ice" },
+      { emoji: "🧁", label: "Cupcake" },
+      { emoji: "🍩", label: "Donut" },
+      { emoji: "🍪", label: "Cookie" },
+      { emoji: "🍒", label: "Cherries" },
+      { emoji: "🫐", label: "Blueberries" },
+      { emoji: "🍓", label: "Strawberry" },
+      { emoji: "🍯", label: "Honey" },
+    ],
+  },
+  {
+    group: 'Beverages',
+    items: [
+      { emoji: "🍋", label: "Lemonade" },
+      { emoji: "🥭", label: "Mango / tropical" },
+      { emoji: "🍹", label: "Cocktail" },
+      { emoji: "🍺", label: "Beer" },
+      { emoji: "🍷", label: "Wine" },
+      { emoji: "☕", label: "Coffee" },
+      { emoji: "🍵", label: "Tea" },
+      { emoji: "🥤", label: "Juice / soda" },
+      { emoji: "💧", label: "Water" },
+      { emoji: "🧋", label: "Bubble tea" },
+      { emoji: "🍇", label: "Grapes" },
+      { emoji: "🍎", label: "Apple" },
+    ],
+  },
+  {
+    group: 'Events & general',
+    items: [
+      { emoji: "🍽️", label: "Plate / default" },
+      { emoji: "🍴", label: "Fork and knife" },
+      { emoji: "🎂", label: "Birthday cake" },
+      { emoji: "🥂", label: "Cheers / corporate" },
+      { emoji: "🎉", label: "Celebration" },
+      { emoji: "🌟", label: "Star / popular" },
+      { emoji: "🌿", label: "Herb / seasonal" },
+      { emoji: "🥡", label: "Takeaway box" },
+      { emoji: "🚚", label: "Delivery" },
+      { emoji: "🍷", label: "Wine pairing" },
+    ],
+  },
+];
+
 /** Tables used by the reservation feature (used for the client-side availability check). */
 export const TABLES = [
   { id: 't-1', label: 'Window 1', seats: 2 },

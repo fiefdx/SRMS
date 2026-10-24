@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../hooks/useApp';
 import MenuFilters from '../../components/MenuFilters';
+import EmojiPicker from '../../components/EmojiPicker';
 import StatusBadge from '../../components/StatusBadge';
 import useMenuFilters from '../../hooks/useMenuFilters';
 import { CATEGORIES, DIETARY_TAGS } from '../../data/menuData';
@@ -147,11 +148,10 @@ export default function AdminMenu() {
               <input id="item-price" className="input" type="number" min="0" step="0.01" value={draft.price} onChange={(e) => changeField('price', e.target.value)} />
               {errors.price && <span className="error">{errors.price}</span>}
             </div>
-            <div className="field">
-              <label htmlFor="item-emoji">Icon</label>
-              <input id="item-emoji" className="input" value={draft.emoji} onChange={(e) => changeField('emoji', e.target.value)} />
-            </div>
           </div>
+
+          {/* Icon is picked from the curated food-emoji list instead of being typed by hand. */}
+          <EmojiPicker value={draft.emoji} onChange={(emoji) => changeField('emoji', emoji)} />
 
           <div className="field">
             <label htmlFor="item-description">Description *</label>

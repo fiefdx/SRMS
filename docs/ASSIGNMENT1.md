@@ -30,7 +30,7 @@ project connects the two.
 | Requirement | Implementation |
 | --- | --- |
 | Dashboard with role protection | `src/components/AdminLayout.jsx` (role gate + nested `<Outlet />` routes) |
-| CRUD menu items, availability in real time | `src/pages/admin/AdminMenu.jsx` (validated editor, availability toggle, delete with confirm, filters reused from the customer side) |
+| CRUD menu items, availability in real time | `src/pages/admin/AdminMenu.jsx` (validated editor, curated food-emoji icon picker in `components/EmojiPicker.jsx` fed by `MENU_EMOJIS`, availability toggle, delete with confirm, filters reused from the customer side) |
 | Monitor incoming orders and update status | `src/pages/admin/AdminOrders.jsx` (status select, "Advance" button, status filters) |
 | Manage reservations / events, approve or cancel | `src/pages/admin/AdminReservations.jsx` |
 | Analytics: orders per day/week, popular items, feedback summary | `src/utils/analytics.js` + `src/pages/admin/AdminDashboard.jsx` (`BarChart`, `StatCard`, top dishes, feedback sentiment summary) |
