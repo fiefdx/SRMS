@@ -86,7 +86,8 @@ export const INTENTS = [
     id: 'budget',
     label: 'Budget request',
     keywords: ['under', 'budget', 'less than', 'cheaper', 'affordable', 'cheap', 'max'],
-    build: (ctx) => ctx.byBudget(),
+    boost: (text) => (/under \$?\d+|budget of \$?\d+|max(imum)? \$?\d+/.test(text) ? 3 : 0),
+    build: (ctx, text) => ctx.byBudget(text),
   },
   {
     id: 'spicy',
@@ -109,8 +110,14 @@ export const INTENTS = [
   {
     id: 'allergy',
     label: 'Allergens / ingredients',
-    keywords: ['allergy', 'allergen', 'allergies', 'ingredient', 'ingredients', 'nuts', 'gluten in'],
-    build: (ctx) => ctx.allergy(),
+    keywords: ['allergy', 'allergen', 'allergies', 'ingredient', 'ingredients', 'nuts', 'what is in', 'contains'],
+    build: (ctx, text) => ctx.allergy(text),
+  },
+  {
+    id: 'previous-order',
+    label: 'Previous order',
+    keywords: ['recently ordered', 'ordered recently', 'order history', 'my previous', 'my last order'],
+    build: (ctx) => ctx.previousOrder(),
   },
   {
     id: 'hours',
@@ -130,7 +137,7 @@ export const INTENTS = [
     label: 'Delivery and pickup',
     keywords: ['delivery', 'deliver', 'pickup', 'pick up', 'collect', 'takeaway', 'how long'],
     build: () =>
-      `Delivery is ${RESTAURANT_INFO.delivery.radius} away, ${RESTAURANT_INFO.delivery.fee} fee (free over $${RESTAURANT_INFO.delivery.freeFrom}), about ${RESTAURANT_INFO.delivery.eta}. Pickup takes around ${RESTAURANT_INFO.pickup.eta}.`,
+      `Delivery covers a ${RESTAURANT_INFO.delivery.radius} radius and costs $${RESTAURANT_INFO.delivery.fee.toFixed(2)} (free over $${RESTAURANT_INFO.delivery.freeFrom}). It usually takes ${RESTAURANT_INFO.delivery.eta}. Pickup is ready in about ${RESTAURANT_INFO.pickup.eta}.`,
   },
   {
     id: 'reservation',
@@ -149,7 +156,7 @@ export const INTENTS = [
     id: 'menu-item',
     label: 'Specific dish',
     keywords: ['what is in', 'alcohol', 'drink', 'dessert', 'starter', 'main course', 'beverage', 'salad', 'pizza', 'pasta', 'coffee'],
-    build: (ctx) => ctx.searchMenu(),
+    build: (ctx, text) => ctx.searchMenu(text),
   },
   {
     id: 'greeting',

@@ -8,6 +8,7 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import Orders from './pages/Orders';
 import Reserve from './pages/Reserve';
 import Reservations from './pages/Reservations';
+import AIChat from './pages/AIChat';
 import NotFound from './pages/NotFound';
 
 /**
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/orders" element={<Orders />} />
       <Route path="/reserve" element={<Reserve />} />
       <Route path="/reservations" element={<Reservations />} />
+      <Route path="/chat" element={<AIChat />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
