@@ -1,16 +1,32 @@
-# React + Vite
+# SRMS client (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend for the Smart Restaurant Management System — Assignment 1 of the SODV2201 project.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install     # install dependencies
+npm run dev     # start the dev server on http://localhost:5173
+npm run lint    # oxlint checks
+npm run build   # production build to dist/
+npm run preview # serve the production build locally
+```
 
-## React Compiler
+## Source layout
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+src/
+  main.jsx            app entry: router + AppProvider + shell (Navbar/Footer/Toasts)
+  App.jsx             route table
+  index.css           design tokens and component styles
+  context/            AppContext — single store for menu, cart, orders, reservations, feedback, user
+  hooks/              usePersistentState (useState + localStorage), useMenuFilters
+  data/               menuData.js (menu, tables, hours), seedData.js, aiKnowledgeBase.js
+  services/           simulated AI assistant engine
+  components/         reusable prop-driven components (Navbar, MenuCard, CartList, forms, toasts…)
+  pages/              customer pages and admin/ dashboard pages
+  utils/              money/total/date/validation helpers
+```
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+State lives in `localStorage` during Assignment 1 and is replaced by REST calls to the Node/Express
+backend in Assignment 2.
