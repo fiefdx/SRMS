@@ -647,19 +647,33 @@ table.data tr:last-child td { border-bottom: none; }
 
 .emoji-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
   gap: 0.35rem;
   margin-top: 0.3rem;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .emoji-btn {
-  font-size: 1.3rem;
-  line-height: 1.2;
-  padding: 0.3rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.25rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-2);
   cursor: pointer;
+}
+
+.emoji-cell-icon {
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.emoji-cell-label {
+  font-size: 0.68rem;
+  color: var(--muted);
 }
 
 .emoji-btn:hover { border-color: var(--accent); background: #31281d; }
@@ -669,6 +683,8 @@ table.data tr:last-child td { border-bottom: none; }
   background: rgba(232, 176, 75, 0.2);
   box-shadow: 0 0 0 2px rgba(232, 176, 75, 0.25);
 }
+
+.emoji-btn.selected .emoji-cell-label { color: var(--text); }
 
 .emoji-custom {
   display: grid;
