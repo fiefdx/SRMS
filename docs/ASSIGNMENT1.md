@@ -98,7 +98,30 @@ Admin access: sign in at `/account` and tick **Sign in as administrator** (or us
 Demo tips: `/admin` → **Restore demo data** resets menu, orders, bookings and feedback so the
 walkthrough can be repeated. To wipe everything including the account, clear the site's localStorage.
 
-## 5. Deliberate limitations (resolved in Assignment 2 / final project)
+## 5. Suggested walkthrough (for the recorded demo)
+
+1. **Setup** — show `npm create vite@latest client -- --template react`, the folder layout and why
+   `requirements/` is in `.gitignore`. Show `git log --oneline --graph` and the two feature branches.
+2. **Data layer** — `menuData.js` (item shape = future database document), `seedData.js`,
+   `aiKnowledgeBase.js`.
+3. **Store** — `AppContext.jsx`: every mutation in one place, `usePersistentState` explaining how the
+   swap to REST calls in Assignment 2 keeps components untouched.
+4. **Menu** — search, category tabs, dietary filters, price range, sorting; point out `useMenuFilters`
+   and `useMemo`, the grouped list rendering and the unavailable-item conditional rendering.
+5. **Cart & checkout** — quantity controls, derived totals in `helpers.js`, validated form, delivery vs
+   pickup conditional fields, order confirmation and the status timeline.
+6. **Reservations** — live availability preview, then deliberately try to book the same table twice in
+   the same slot to show the double-booking error; show an event booking with requirements.
+7. **AI assistant** — run `npm run check:ai` in the terminal first (shows verification), then ask the
+   six scripted questions plus “I want something spicy under $20” and “What is in Chicken Alfredo?”;
+   explain scoring, the scripted-pair precedence and the rule intents reading live data.
+8. **Admin** — sign in as admin (role gate), add/edit/delete a menu item and show it appear on the
+   customer menu, advance an order status and show the change in the customer view, approve a booking,
+   read the analytics (7-day chart, popular dishes, feedback sentiment).
+9. **Clean-up / next phase** — `npm run lint`, `npm run build`, then what Assignment 2 adds (Express
+   routes, database, JWT/sessions, server-side validation).
+
+## 6. Deliberate limitations (resolved in Assignment 2 / final project)
 
 - Accounts are simulated in the browser: no password storage, no token. Role checks are frontend
   only.
