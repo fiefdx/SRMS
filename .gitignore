@@ -1,0 +1,5 @@
+# Do not track the assignment brief / course materials
+requirements/
+
+# OS files
+.DS_Store
