@@ -26,9 +26,6 @@ export default function FormField({
     required,
     onChange: (event) => onChange(id, event.target.type === 'checkbox' ? event.target.checked : event.target.value),
     'aria-invalid': error ? 'true' : 'false',
-    min,
-    max,
-    step,
   };
 
   let control;
@@ -45,7 +42,7 @@ export default function FormField({
       </select>
     );
   } else {
-    control = <input className="input" type={type} {...common} />;
+    control = <input className="input" type={type} min={min} max={max} step={step} {...common} />;
   }
 
   return (

@@ -5,6 +5,8 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import Orders from './pages/Orders';
+import Reserve from './pages/Reserve';
+import Reservations from './pages/Reservations';
 import NotFound from './pages/NotFound';
 
 /**
@@ -20,6 +22,8 @@ export default function App() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/order/:id" element={<OrderConfirmation />} />
       <Route path="/orders" element={<Orders />} />
+      <Route path="/reserve" element={<Reserve />} />
+      <Route path="/reservations" element={<Reservations />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
