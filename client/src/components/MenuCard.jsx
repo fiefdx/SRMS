@@ -1,15 +1,14 @@
 import { truncate } from '../utils/helpers';
 
-/** Text budgets per card section keep every card the same height. */
+/** Text budget for the one section that may be shortened. */
 const DESCRIPTION_MAX = 84;
-const INGREDIENTS_MAX = 64;
 
 /**
  * MenuCard is fully prop driven (no context access) so it can be reused by the customer menu,
  * the home page "popular items" list and the admin preview without hidden dependencies.
  *
  * Layout contract: emoji on the left with the full dish name to its right, then the description on its
- * own full-width row (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines), then the
+ * own full-width row (max 2 lines, "…" if longer), dietary chips, the full ingredient list, then the
  * price and the action row pinned to the bottom of the card (primary button left, favourite button
  * right), so the price always sits directly above the buttons and the buttons always sit the same
  * distance from the bottom edge.
@@ -23,7 +22,6 @@ export default function MenuCard({
 }) {
   const price = Number(item.price).toFixed(2);
   const description = truncate(item.description, DESCRIPTION_MAX);
-  const ingredients = truncate(item.ingredients.join(', '), INGREDIENTS_MAX);
 
   return (
     <article className={`card menu-card${item.available ? '' : ' disabled'}`}>
@@ -45,8 +43,8 @@ export default function MenuCard({
         {!item.available && <span className="badge unavailable">Unavailable</span>}
       </div>
 
-      <p className="menu-card-ingredients small muted clamp-2" title={item.ingredients.join(', ')}>
-        <strong>Ingredients:</strong> {ingredients}
+      <p className="menu-card-ingredients small muted">
+        <strong>Ingredients:</strong> {item.ingredients.join(', ')}
       </p>
 
       <div className="menu-card-price">

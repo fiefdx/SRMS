@@ -453,8 +453,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 .menu-card-ingredients {
-  min-height: 2.6em;
+  min-height: 2.6em; /* reserves two lines for alignment, longer lists simply grow the card */
   margin: 0;
+  overflow-wrap: break-word;
 }
 
 /* Price + action row are pinned together at the bottom: the price always sits directly above the
