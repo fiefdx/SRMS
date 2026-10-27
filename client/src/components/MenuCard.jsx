@@ -1,7 +1,6 @@
 import { truncate } from '../utils/helpers';
 
 /** Text budgets per card section keep every card the same height. */
-const TITLE_MAX = 30;
 const DESCRIPTION_MAX = 84;
 const INGREDIENTS_MAX = 64;
 
@@ -9,9 +8,9 @@ const INGREDIENTS_MAX = 64;
  * MenuCard is fully prop driven (no context access) so it can be reused by the customer menu,
  * the home page "popular items" list and the admin preview without hidden dependencies.
  *
- * Layout contract: title (1 line), description (max 2 lines, "…" if longer), dietary chips,
- * ingredients (max 2 lines) and the action row pinned to the bottom of the card, so buttons always
- * sit the same distance from the card's bottom edge.
+ * Layout contract: full dish name (never shortened, wraps over two lines and the title block reserves
+ * that space), description (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines) and
+ * the action row pinned to the bottom, so buttons always sit the same distance from the bottom edge.
  */
 export default function MenuCard({
   item,
@@ -29,8 +28,8 @@ export default function MenuCard({
       <div className="menu-card-top">
         <div className="menu-emoji" aria-hidden="true">{item.emoji}</div>
         <div className="menu-card-headline">
-          <h3 className="clamp-1" title={item.name}>
-            {truncate(item.name, TITLE_MAX)}
+          <h3 className="menu-card-title" title={item.name}>
+            {item.name}
           </h3>
           <p className="menu-card-desc muted small clamp-2" title={item.description}>
             {description}

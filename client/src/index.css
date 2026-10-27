@@ -426,21 +426,20 @@ ul { margin: 0; padding: 0; list-style: none; }
   min-width: 0;
 }
 
-.clamp-1,
 .clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.clamp-1 {
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-}
-
-.clamp-2 {
   -webkit-line-clamp: 2;
   line-clamp: 2;
+}
+
+/* Dish names are never shortened. The title block reserves two lines so the sections below it - and
+   therefore the pinned action row - stay aligned from card to card. */
+.menu-card-title {
+  min-height: 2.4em;
+  margin-bottom: 0.1rem;
+  overflow-wrap: break-word;
 }
 
 .menu-card-desc {
