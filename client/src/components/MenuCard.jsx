@@ -9,8 +9,9 @@ const INGREDIENTS_MAX = 64;
  * the home page "popular items" list and the admin preview without hidden dependencies.
  *
  * Layout contract: full dish name (never shortened, wraps over two lines and the title block reserves
- * that space), description (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines) and
- * the action row pinned to the bottom, so buttons always sit the same distance from the bottom edge.
+ * that space), description (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines),
+ * then the price and the action row pinned to the bottom of the card, so the price always sits
+ * directly above the buttons and the buttons always sit the same distance from the bottom edge.
  */
 export default function MenuCard({
   item,
@@ -35,7 +36,6 @@ export default function MenuCard({
             {description}
           </p>
         </div>
-        <div className="price nowrap">${price}</div>
       </div>
 
       <div className="chip-row menu-card-chips" aria-label="Dietary information">
@@ -49,6 +49,11 @@ export default function MenuCard({
       <p className="menu-card-ingredients small muted clamp-2" title={item.ingredients.join(', ')}>
         <strong>Ingredients:</strong> {ingredients}
       </p>
+
+      <div className="menu-card-price">
+        <span className="small muted">Price</span>
+        <span className="price nowrap">${price}</span>
+      </div>
 
       <div className="menu-card-footer">
         <button

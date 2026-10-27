@@ -457,12 +457,24 @@ ul { margin: 0; padding: 0; list-style: none; }
   margin: 0;
 }
 
-.menu-card-footer {
+/* Price + action row are pinned together at the bottom: the price always sits directly above the
+   buttons, and the buttons always the same distance from the bottom edge. */
+.menu-card-price {
   margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.55rem;
+}
+
+.menu-card-footer {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+  margin-top: 0.5rem;
 }
 
 .menu-card-top {
