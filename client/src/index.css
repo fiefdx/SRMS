@@ -385,6 +385,55 @@ ul { margin: 0; padding: 0; list-style: none; }
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  height: 100%;
+  min-height: 250px;
+}
+
+/* Fixed text budgets: sections have the same height on every card, and the action row is pinned to
+   the bottom so buttons keep the same distance from the card's bottom edge. */
+.menu-card-headline {
+  flex: 1;
+  min-width: 0;
+}
+
+.clamp-1,
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.clamp-1 {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.clamp-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.menu-card-desc {
+  min-height: 2.6em;
+  margin: 0;
+}
+
+.menu-card-chips {
+  min-height: 1.9em;
+  align-items: center;
+}
+
+.menu-card-ingredients {
+  min-height: 2.6em;
+  margin: 0;
+}
+
+.menu-card-footer {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .menu-card-top {

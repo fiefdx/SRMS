@@ -84,3 +84,16 @@ export function isValidPhone(value) {
 export function pluralise(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
+
+/**
+ * Shortens long copy to a fixed reading length and marks the cut with an ellipsis, so cards keep a
+ * uniform height instead of stretching to the longest description.
+ */
+export function truncate(text, maxLength = 96) {
+  const value = String(text ?? '').trim();
+  if (value.length <= maxLength) return value;
+  const cut = value.slice(0, maxLength);
+  const lastSpace = cut.lastIndexOf(' ');
+  const safeEnd = lastSpace > maxLength * 0.6 ? cut.slice(0, lastSpace) : cut;
+  return `${safeEnd.trimEnd()}…`;
+}
