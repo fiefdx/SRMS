@@ -59,7 +59,7 @@ client/                 React + Vite frontend (Assignment 1)
   src/components        reusable prop-driven components
   src/pages             customer pages + admin/ dashboard pages
   scripts/              checkAssistant.mjs (npm run check:ai)
-docs/ASSIGNMENT1.md     brief-to-code map, rubric coverage, limitations, demo notes
+docs/ASSIGNMENT1.md     brief-to-code map for the customer and admin use cases, run/verify steps
 server/                 Node.js + Express backend (added in Assignment 2)
 ```
 
