@@ -421,11 +421,18 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* Fixed text budgets: sections have the same height on every card, and the action row is pinned to
    the bottom so buttons keep the same distance from the card's bottom edge. */
-.menu-card-headline {
+
+/* Name sits to the right of the icon and takes the remaining width; it is never shortened. Two lines
+   are reserved so the full-width description row below starts at the same height on every card. */
+.menu-card-title {
   flex: 1;
   min-width: 0;
+  min-height: 2.4em;
+  margin: 0;
+  overflow-wrap: break-word;
 }
 
+/* Two-line cap with an ellipsis, used for description and ingredients. */
 .clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -434,17 +441,10 @@ ul { margin: 0; padding: 0; list-style: none; }
   line-clamp: 2;
 }
 
-/* Dish names are never shortened. The title block reserves two lines so the sections below it - and
-   therefore the pinned action row - stay aligned from card to card. */
-.menu-card-title {
-  min-height: 2.4em;
-  margin-bottom: 0.1rem;
-  overflow-wrap: break-word;
-}
-
 .menu-card-desc {
   min-height: 2.6em;
   margin: 0;
+  width: 100%; /* own full-width row under the name */
 }
 
 .menu-card-chips {
@@ -480,7 +480,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .menu-card-top {
   display: flex;
   gap: 0.75rem;
-  align-items: flex-start;
+  align-items: center; /* icon and name stay side by side */
 }
 
 .menu-emoji {

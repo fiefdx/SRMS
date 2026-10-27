@@ -8,10 +8,10 @@ const INGREDIENTS_MAX = 64;
  * MenuCard is fully prop driven (no context access) so it can be reused by the customer menu,
  * the home page "popular items" list and the admin preview without hidden dependencies.
  *
- * Layout contract: full dish name (never shortened, wraps over two lines and the title block reserves
- * that space), description (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines),
- * then the price and the action row pinned to the bottom of the card, so the price always sits
- * directly above the buttons and the buttons always sit the same distance from the bottom edge.
+ * Layout contract: emoji on the left with the full dish name to its right, then the description on its
+ * own full-width row (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines), then the
+ * price and the action row pinned to the bottom of the card, so the price always sits directly above
+ * the buttons and the buttons always sit the same distance from the bottom edge.
  */
 export default function MenuCard({
   item,
@@ -28,15 +28,13 @@ export default function MenuCard({
     <article className={`card menu-card${item.available ? '' : ' disabled'}`}>
       <div className="menu-card-top">
         <div className="menu-emoji" aria-hidden="true">{item.emoji}</div>
-        <div className="menu-card-headline">
-          <h3 className="menu-card-title" title={item.name}>
-            {item.name}
-          </h3>
-          <p className="menu-card-desc muted small clamp-2" title={item.description}>
-            {description}
-          </p>
-        </div>
+        <h3 className="menu-card-title" title={item.name}>{item.name}</h3>
       </div>
+
+      {/* Description gets its own full-width row under the name. */}
+      <p className="menu-card-desc muted small clamp-2" title={item.description}>
+        {description}
+      </p>
 
       <div className="chip-row menu-card-chips" aria-label="Dietary information">
         {item.todaySpecial && <span className="chip accent">Today&apos;s special</span>}
