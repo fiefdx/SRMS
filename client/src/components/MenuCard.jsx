@@ -10,8 +10,9 @@ const INGREDIENTS_MAX = 64;
  *
  * Layout contract: emoji on the left with the full dish name to its right, then the description on its
  * own full-width row (max 2 lines, "…" if longer), dietary chips, ingredients (max 2 lines), then the
- * price and the action row pinned to the bottom of the card, so the price always sits directly above
- * the buttons and the buttons always sit the same distance from the bottom edge.
+ * price and the action row pinned to the bottom of the card (primary button left, favourite button
+ * right), so the price always sits directly above the buttons and the buttons always sit the same
+ * distance from the bottom edge.
  */
 export default function MenuCard({
   item,

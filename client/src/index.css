@@ -472,6 +472,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .menu-card-footer {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between; /* primary button on the left, favourite button on the right */
   gap: 0.5rem;
   align-items: center;
   margin-top: 0.5rem;
