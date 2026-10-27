@@ -14,6 +14,7 @@
   --info: #6aa9d8;
   --radius: 14px;
   --radius-sm: 9px;
+  --control-height: 2.65rem; /* shared height for text inputs, number inputs and select boxes */
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
   --font: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -246,6 +247,35 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: #141210;
   color: var(--text);
   font: inherit;
+  box-sizing: border-box;
+}
+
+/* Search box, price boxes and the "Sort by" selector share one exact height so the whole filter row
+   lines up. The selector is drawn by CSS (appearance: none) because a native select shrinks to its
+   own intrinsic height. */
+.input,
+.select {
+  height: var(--control-height);
+  min-height: var(--control-height);
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23b9ae9f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 0.75rem;
+  cursor: pointer;
+}
+
+/* Selects inside dense tables keep the shared look but stay compact. */
+.select.auto {
+  height: auto;
+  min-height: 2.15rem;
+  width: auto;
+  font-size: 0.85rem;
 }
 
 .input:focus, .select:focus, .textarea:focus {

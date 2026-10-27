@@ -89,7 +89,7 @@ export default function AdminOrders() {
                   <td>
                     <div className="btn-row">
                       <select
-                        className="select"
+                        className="select auto"
                         value={order.status}
                         onChange={(event) => {
                           updateOrderStatus(order.id, event.target.value);
