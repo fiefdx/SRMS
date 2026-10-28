@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 import { useApp } from '../hooks/useApp';
+import { RESTAURANT_INFO } from '../data/aiKnowledgeBase';
 
 /**
  * Navigation demonstrates:
@@ -28,7 +29,7 @@ export default function Navbar() {
       <div className="container navbar-inner">
         <Link className="brand" to="/">
           <span className="mark">🍽️</span>
-          <span>Bella Vista · SRMS</span>
+          <span>{RESTAURANT_INFO.name} · SRMS</span>
         </Link>
 
         <nav className="nav-links" aria-label="Main navigation">

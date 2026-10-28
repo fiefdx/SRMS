@@ -42,7 +42,7 @@ export default function Home() {
     <div className="container page">
       <section className="hero">
         <span className="kicker">{RESTAURANT_INFO.tagline}</span>
-        <h1>Bella Vista Smart Restaurant Management System</h1>
+        <h1>{RESTAURANT_INFO.name} Smart Restaurant Management System</h1>
         <p className="muted">
           Browse the full menu, order for delivery or pickup, book a table or a private event and ask
           our AI assistant anything about the restaurant. Administrators get a dashboard to manage the
