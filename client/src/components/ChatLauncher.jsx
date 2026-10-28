@@ -11,7 +11,7 @@ export default function ChatLauncher({ open, onToggle }) {
       aria-expanded={open}
       aria-controls="chat-panel"
       aria-label={open ? 'Close the AI assistant' : 'Ask the AI assistant'}
-      title="AI Menu Assistant"
+      title="AI Assistant"
     >
       {open ? '✕' : '💬'}
     </button>

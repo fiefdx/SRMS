@@ -617,13 +617,13 @@ table.data tr:last-child td { border-bottom: none; }
   gap: 0.6rem;
 }
 
-.chat-panel-head > div:first-child {
-  min-width: 0; /* subtitle wraps instead of pushing the buttons onto a new row */
-}
-
 .chat-panel-head h2 {
   font-size: 1.05rem;
-  margin: 0 0 0.15rem;
+  margin: 0; /* title shares the row with the New and close buttons */
+}
+
+.chat-panel-sub {
+  margin: -0.35rem 0 0;
 }
 
 /* "New" and the close button always share one row. */

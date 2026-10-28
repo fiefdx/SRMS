@@ -41,12 +41,9 @@ export default function ChatPanel({ onClose }) {
   };
 
   return (
-    <section className="chat-panel" id="chat-panel" role="dialog" aria-label="AI Menu Assistant">
+    <section className="chat-panel" id="chat-panel" role="dialog" aria-label="AI Assistant">
       <div className="chat-panel-head">
-        <div>
-          <h2>AI Menu Assistant</h2>
-          <p className="small muted">Live menu, your orders, your preferences · simulated locally.</p>
-        </div>
+        <h2>AI Assistant</h2>
         <div className="btn-row">
           <button className="btn small ghost" onClick={reset} title="Start a new conversation">
             New
@@ -56,6 +53,8 @@ export default function ChatPanel({ onClose }) {
           </button>
         </div>
       </div>
+
+      <p className="chat-panel-sub small muted">Live menu, your orders, your preferences · simulated locally.</p>
 
       <div className="chat-log" ref={logRef}>
         {messages.map((message) => (
