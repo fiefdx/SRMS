@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../hooks/useApp';
 import StatusBadge from '../components/StatusBadge';
@@ -8,16 +8,13 @@ import { formatDate, formatMoney, pluralise } from '../utils/helpers';
 const RATINGS = [1, 2, 3, 4, 5];
 
 export default function Orders() {
-  const { orders, user, cancelOrder, notify, addFeedback, feedback } = useApp();
+  const { myOrders, user, cancelOrder, notify, addFeedback, feedback } = useApp();
   const [feedbackFor, setFeedbackFor] = useState(null);
   const [draft, setDraft] = useState({ rating: 5, comment: '' });
   const [errors, setErrors] = useState({});
 
-  // Customers only see their own history; guests see the demo history of the restaurant.
-  const visibleOrders = useMemo(
-    () => (user ? orders.filter((o) => o.email === user.email) : orders),
-    [orders, user],
-  );
+  // myOrders is scoped in the store: account history when signed in, this browser session when not.
+  const visibleOrders = myOrders;
 
   const handleFeedbackChange = (field, value) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
@@ -32,7 +29,7 @@ export default function Orders() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    const order = orders.find((o) => o.id === feedbackFor);
+    const order = myOrders.find((o) => o.id === feedbackFor);
     addFeedback({
       orderId: feedbackFor,
       customerName: user?.name ?? order?.customerName ?? 'Guest',
@@ -52,7 +49,7 @@ export default function Orders() {
           <p>
             {user
               ? `Order history for ${user.email}.`
-              : 'Signed-in customers see only their own orders; right now you are browsing the demo history.'}
+              : 'Signed out: only the orders placed in this browser are listed here. Sign in to see an account history.'}
           </p>
         </div>
         <Link className="btn small" to="/menu">

@@ -15,21 +15,13 @@ export default function Account() {
     preferences,
     setDietaryPreferences,
     menuItems,
-    orders,
-    reservations,
+    myOrders,
+    myReservations,
   } = useApp();
 
   const [form, setForm] = useState({ name: '', email: '', password: '', asAdmin: false });
   const [errors, setErrors] = useState({});
 
-  const myOrders = useMemo(
-    () => (user ? orders.filter((o) => o.email === user.email) : []),
-    [orders, user],
-  );
-  const myReservations = useMemo(
-    () => (user ? reservations.filter((r) => r.email === user.email) : []),
-    [reservations, user],
-  );
   const favourites = useMemo(
     () => menuItems.filter((item) => preferences.favouriteIds.includes(item.id)),
     [menuItems, preferences.favouriteIds],

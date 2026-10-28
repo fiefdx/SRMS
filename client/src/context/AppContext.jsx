@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppContext } from './appStore';
 import usePersistentState from '../hooks/usePersistentState';
 import { MENU_ITEMS, TABLES } from '../data/menuData';
@@ -15,6 +15,12 @@ import { calcTotals, makeId, nextNumber } from '../utils/helpers';
 
 const ADMIN_EMAILS = ['admin@srms.dev'];
 
+/** Identifies a signed-out visitor so "My orders" only lists what this browser actually placed. */
+function newGuestSessionId() {
+  const random = Math.random().toString(36).slice(2, 8);
+  return `guest-${Date.now().toString(36)}-${random}`;
+}
+
 export function AppProvider({ children }) {
   const [menuItems, setMenuItems] = usePersistentState('menuItems', MENU_ITEMS);
   const [cart, setCart] = usePersistentState('cart', []);
@@ -28,6 +34,16 @@ export function AppProvider({ children }) {
   });
   // Toast notifications are intentionally ephemeral, so they use plain useState.
   const [notifications, setNotifications] = useState([]);
+
+  // Guest identity for signed-out ordering. Persisted so a refresh keeps the same visitor id.
+  const [storedGuestSession, setGuestSession] = usePersistentState('guestSession', null);
+  const guestSessionId = useMemo(
+    () => storedGuestSession ?? newGuestSessionId(),
+    [storedGuestSession],
+  );
+  useEffect(() => {
+    if (storedGuestSession === null) setGuestSession(guestSessionId);
+  }, [storedGuestSession, guestSessionId, setGuestSession]);
 
   /* ----------------------------------------------------------------- helpers */
 
@@ -97,13 +113,13 @@ export function AppProvider({ children }) {
         ...totals,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        placedBy: user?.id ?? 'guest',
+        placedBy: user?.id ?? guestSessionId,
       };
       setOrders((prev) => [order, ...prev]);
       setCart([]);
       return order;
     },
-    [cart, orders, setOrders, setCart, user],
+    [cart, orders, setOrders, setCart, user, guestSessionId],
   );
 
   const updateOrderStatus = useCallback(
@@ -161,12 +177,12 @@ export function AppProvider({ children }) {
         tableId: table.id,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        placedBy: user?.id ?? 'guest',
+        placedBy: user?.id ?? guestSessionId,
       };
       setReservations((prev) => [reservation, ...prev]);
       return { ok: true, reservation };
     },
-    [findAvailableTable, reservations, setReservations, user],
+    [findAvailableTable, reservations, setReservations, user, guestSessionId],
   );
 
   const updateReservationStatus = useCallback(
@@ -281,6 +297,29 @@ export function AppProvider({ children }) {
     [setFeedback],
   );
 
+  /* ------------------------------------------------- customer-scoped selectors */
+
+  /**
+   * Signed-in customers see records linked to their account; signed-out visitors see only the records
+   * created by this browser session, so "My orders" never shows somebody else's history. The admin
+   * pages keep using the full collections.
+   */
+  const myOrders = useMemo(
+    () =>
+      user
+        ? orders.filter((o) => o.placedBy === user.id || o.email === user.email)
+        : orders.filter((o) => o.placedBy === guestSessionId),
+    [orders, user, guestSessionId],
+  );
+
+  const myReservations = useMemo(
+    () =>
+      user
+        ? reservations.filter((r) => r.placedBy === user.id || r.email === user.email)
+        : reservations.filter((r) => r.placedBy === guestSessionId),
+    [reservations, user, guestSessionId],
+  );
+
   const value = useMemo(
     () => ({
       menuItems,
@@ -289,6 +328,9 @@ export function AppProvider({ children }) {
       cartTotals,
       orders,
       reservations,
+      myOrders,
+      myReservations,
+      guestSessionId,
       feedback,
       user,
       preferences,
@@ -319,7 +361,8 @@ export function AppProvider({ children }) {
       dismissNotification,
     }),
     [
-      menuItems, cart, cartCount, cartTotals, orders, reservations, feedback, user, preferences,
+      menuItems, cart, cartCount, cartTotals, orders, reservations, myOrders, myReservations,
+      guestSessionId, feedback, user, preferences,
       notifications, addToCart, removeFromCart, updateQuantity, clearCart, placeOrder,
       updateOrderStatus, cancelOrder, findAvailableTable, createReservation, updateReservationStatus,
       deleteReservation, saveMenuItem, deleteMenuItem, toggleAvailability, resetMenu, resetDemoData, signIn,

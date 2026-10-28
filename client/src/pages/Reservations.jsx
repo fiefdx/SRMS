@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../hooks/useApp';
 import StatusBadge from '../components/StatusBadge';
@@ -8,12 +7,10 @@ import { RESERVATION_TYPES } from '../data/menuData';
 const typeLabel = (id) => RESERVATION_TYPES.find((t) => t.id === id)?.label ?? id;
 
 export default function Reservations() {
-  const { reservations, user, updateReservationStatus, deleteReservation, notify } = useApp();
+  const { myReservations, updateReservationStatus, deleteReservation, notify } = useApp();
 
-  const visible = useMemo(
-    () => (user ? reservations.filter((r) => r.email === user.email) : reservations),
-    [reservations, user],
-  );
+  // Store-scoped: account bookings when signed in, this browser session when signed out.
+  const visible = myReservations;
 
   const upcoming = visible.filter((r) => r.status !== 'cancelled');
   const past = visible.filter((r) => r.status === 'cancelled');
