@@ -45,9 +45,7 @@ export default function ChatPanel({ onClose }) {
       <div className="chat-panel-head">
         <div>
           <h2>AI Menu Assistant</h2>
-          <p className="small muted">
-            Reads the live menu, your orders and your saved preferences. Simulated locally.
-          </p>
+          <p className="small muted">Live menu, your orders, your preferences · simulated locally.</p>
         </div>
         <div className="btn-row">
           <button className="btn small ghost" onClick={reset} title="Start a new conversation">

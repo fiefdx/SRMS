@@ -612,14 +612,25 @@ table.data tr:last-child td { border-bottom: none; }
 
 .chat-panel-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
+}
+
+.chat-panel-head > div:first-child {
+  min-width: 0; /* subtitle wraps instead of pushing the buttons onto a new row */
 }
 
 .chat-panel-head h2 {
   font-size: 1.05rem;
   margin: 0 0 0.15rem;
+}
+
+/* "New" and the close button always share one row. */
+.chat-panel-head .btn-row {
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  align-items: center;
 }
 
 .chat-panel .chat-log {
@@ -633,7 +644,7 @@ table.data tr:last-child td { border-bottom: none; }
 
 .chat-close {
   width: 2rem;
-  height: 2rem;
+  height: 1.95rem; /* matches the adjacent small button */
   border-radius: 8px;
   border: 1px solid var(--line);
   background: var(--surface-2);
