@@ -637,11 +637,6 @@ table.data tr:last-child td { border-bottom: none; }
   max-height: 42vh;
 }
 
-.chat-suggestions {
-  max-height: 4.2rem;
-  overflow-y: auto;
-}
-
 .chat-close {
   width: 2rem;
   height: 1.95rem; /* matches the adjacent small button */
@@ -681,6 +676,29 @@ table.data tr:last-child td { border-bottom: none; }
 
 .bubble.assistant { justify-self: start; }
 .bubble.typing { color: var(--muted); font-style: italic; }
+
+/* Assistant messages that carry the pre-set question list need the full panel width. */
+.bubble.assistant:has(.bubble-options) { max-width: 100%; }
+
+.bubble-options {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.bubble-options .chip {
+  text-transform: none;
+  font-size: 0.76rem;
+  padding: 0.3rem 0.65rem;
+  border-color: var(--accent-strong);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.bubble-options .chip:hover:not(:disabled) { background: rgba(232, 176, 75, 0.18); }
+.bubble-options .chip:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .chat-input {
   display: flex;

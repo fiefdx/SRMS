@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../hooks/useApp';
 import useChat from '../hooks/useChat';
 import ChatBubble from './ChatBubble';
 import { askAssistant, assistantIntro } from '../services/aiAssistant';
-import { SUGGESTED_QUESTIONS, RESTAURANT_INFO } from '../data/aiKnowledgeBase';
+import { RESTAURANT_INFO } from '../data/aiKnowledgeBase';
 
 /**
  * Pop-up assistant window (no separate page): a fixed panel above the floating chat button.
@@ -20,7 +20,8 @@ export default function ChatPanel({ onClose }) {
   const inputRef = useRef(null);
 
   const resolve = useCallback((text, context) => askAssistant(text, context), []);
-  const { messages, pending, send, reset } = useChat({ intro: assistantIntro(), resolve });
+  const intro = useMemo(() => assistantIntro(), []);
+  const { messages, pending, send, reset } = useChat({ intro, resolve });
 
   // Context handed to the assistant engine: live menu, this customer's orders and saved preferences.
   const context = { menuItems, orders: myOrders, preferences };
@@ -58,22 +59,14 @@ export default function ChatPanel({ onClose }) {
 
       <div className="chat-log" ref={logRef}>
         {messages.map((message) => (
-          <ChatBubble key={message.id} message={message} />
+          <ChatBubble
+            key={message.id}
+            message={message}
+            disabled={pending}
+            onSelect={(question) => send(question, context)}
+          />
         ))}
         {pending && <ChatBubble message={{ id: 'pending', role: 'typing', text: '…' }} />}
-      </div>
-
-      <div className="chip-row chat-suggestions">
-        {SUGGESTED_QUESTIONS.map((suggestion) => (
-          <button
-            key={suggestion}
-            className="chip"
-            onClick={() => send(suggestion, context)}
-            disabled={pending}
-          >
-            {suggestion}
-          </button>
-        ))}
       </div>
 
       <form className="chat-input" onSubmit={handleSubmit}>

@@ -9,11 +9,19 @@ const nextId = () => `msg-${Date.now()}-${counter++}`;
  * Chat state machine: user message → "typing…" placeholder → assistant reply.
  * All timeouts are tracked in a ref and cleared on unmount, so navigating away cannot update
  * state on an unmounted component.
+ *
+ * `intro` may be a string or a { text, options } object; options are rendered inside the transcript
+ * as clickable questions.
  */
 export default function useChat({ intro, resolve }) {
-  const [messages, setMessages] = useState(() => [
-    { id: nextId(), role: 'assistant', text: intro },
-  ]);
+  // Frozen on first render so the reset handler stays stable. `intro` may be a string or an object.
+  const [introMessage] = useState(() => (typeof intro === 'string' ? { text: intro } : intro));
+  const buildIntro = useCallback(
+    () => ({ id: nextId(), role: 'assistant', ...introMessage }),
+    [introMessage],
+  );
+
+  const [messages, setMessages] = useState(() => [buildIntro()]);
   const [pending, setPending] = useState(false);
   const timers = useRef([]);
 
@@ -52,8 +60,8 @@ export default function useChat({ intro, resolve }) {
     timers.current.forEach((timer) => window.clearTimeout(timer));
     timers.current = [];
     setPending(false);
-    setMessages([{ id: nextId(), role: 'assistant', text: intro }]);
-  }, [intro]);
+    setMessages([buildIntro()]);
+  }, [buildIntro]);
 
   return { messages, pending, send, reset };
 }

@@ -14,7 +14,13 @@
  * easy to test and can later be moved behind POST /api/assistant in Assignment 2.
  */
 
-import { SIMULATED_QA, INTENTS, FALLBACK_RESPONSES, RESTAURANT_INFO } from '../data/aiKnowledgeBase.js';
+import {
+  SIMULATED_QA,
+  INTENTS,
+  FALLBACK_RESPONSES,
+  RESTAURANT_INFO,
+  SUGGESTED_QUESTIONS,
+} from '../data/aiKnowledgeBase.js';
 import { formatMoney } from '../utils/helpers.js';
 import { orderedFrequency } from '../utils/analytics.js';
 
@@ -67,10 +73,16 @@ export function normalise(text = '') {
     .trim();
 }
 
+/**
+ * Word-boundary keyword matching, so 'hi' cannot match inside 'which' and a short keyword cannot
+ * swallow an unrelated question. A trailing 's' is allowed (dessert / desserts, drink / drinks).
+ */
 function keywordScore(text, keywords = []) {
   return keywords.reduce((score, keyword) => {
-    const needle = normalise(keyword);
-    if (!needle || !text.includes(needle)) return score;
+    const needle = normalise(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!needle) return score;
+    const pattern = new RegExp(`(^|\\s)${needle}s?(\\s|$)`, 'i');
+    if (!pattern.test(text)) return score;
     // Multi-word phrases are a stronger signal than single words.
     return score + needle.split(' ').length;
   }, 0);
@@ -97,13 +109,23 @@ function priceRange(items) {
 
 /* ------------------------------------------------- answer builders (context) */
 
+/**
+ * A builder returns a plain string when it answered the question. When it could not answer it returns
+ * this object instead, which makes askAssistant attach the pre-set question list to the reply so the
+ * customer can pick a question that is guaranteed to work.
+ */
+function noAnswer(text) {
+  return { text, unresolved: true };
+}
+
+
 function buildContext({ menuItems, orders, preferences }) {
   const menu = available(menuItems);
 
   return {
     specials() {
       const specials = menuItems.filter((item) => item.todaySpecial && item.available);
-      if (specials.length === 0) return "No special is set for today — check back later today.";
+      if (specials.length === 0) return noAnswer("No special is set for today — check back later today.");
       if (specials.length === 1) {
         return `Today's special is ${specials[0].name} for ${formatMoney(specials[0].price)}.`;
       }
@@ -112,7 +134,7 @@ function buildContext({ menuItems, orders, preferences }) {
 
     byDiet(tag, heading) {
       const matches = menu.filter((item) => item.dietary.includes(tag));
-      if (matches.length === 0) return `Sorry, we have no ${tag} dishes on the menu right now.`;
+      if (matches.length === 0) return noAnswer(`Sorry, we have no ${tag} dishes on the menu right now.`);
       return `${heading}: ${toList(matches, 5)}.`;
     },
 
@@ -131,7 +153,7 @@ function buildContext({ menuItems, orders, preferences }) {
 
       if (matches.length === 0) {
         const cheapest = [...menu].sort((a, b) => a.price - b.price).slice(0, 3);
-        return `Nothing on the menu matches that budget and those requirements. Our lowest priced dishes are ${toList(cheapest)}.`;
+        return noAnswer(`Nothing on the menu matches that budget and those requirements. Our lowest priced dishes are ${toList(cheapest)}.`);
       }
 
       const tags = wantedTags.length > 0 ? ` matching ${wantedTags.join(' and ')}` : '';
@@ -141,7 +163,7 @@ function buildContext({ menuItems, orders, preferences }) {
     allergy(question) {
       const dish = menuItems.find((item) => question.includes(normalise(item.name)));
       if (!dish) {
-        return `Tell me which dish you mean and I will list its ingredients. ${RESTAURANT_INFO.disclaimer}`;
+        return noAnswer(`Tell me which dish you mean and I will list its ingredients. ${RESTAURANT_INFO.disclaimer}`);
       }
       return `${dish.name} contains: ${dish.ingredients.join(', ')}. Dietary tags: ${dish.dietary.join(', ')}. ${RESTAURANT_INFO.disclaimer}`;
     },
@@ -202,7 +224,7 @@ function buildContext({ menuItems, orders, preferences }) {
         .filter((order) => order.status !== 'cancelled')
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       const last = completed[0];
-      if (!last) return "We don't have a previous order for you yet. Try our popular dishes!";
+      if (!last) return noAnswer("We don't have a previous order for you yet. Try our popular dishes!");
       const names = [...new Set(last.items.map((item) => item.name))];
       return `Your previous order was ${names.join(' and ')}.`;
     },
@@ -214,7 +236,7 @@ function buildContext({ menuItems, orders, preferences }) {
 export function askAssistant(question, { menuItems = [], orders = [], preferences = { dietary: [] } } = {}) {
   const text = normalise(question);
   if (!text) {
-    return { text: FALLBACK_RESPONSES[0], source: 'fallback' };
+    return { text: FALLBACK_RESPONSES[0], source: 'fallback', options: SUGGESTED_QUESTIONS };
   }
 
   let bestQA = null;
@@ -231,20 +253,30 @@ export function askAssistant(question, { menuItems = [], orders = [], preference
     const boost = intent.boost ? intent.boost(text) : 0;
     const score = base + boost;
     if (score <= 0) return;
-    const answer = intent.build(context, text);
-    if (!answer) return;
-    if (!bestIntent || score > bestIntent.score) bestIntent = { score, id: intent.id, text: answer };
+    const built = intent.build(context, text);
+    if (!built) return;
+    const answer = typeof built === 'string' ? { text: built } : built;
+    if (!answer.text) return;
+    if (!bestIntent || score > bestIntent.score) {
+      bestIntent = { score, id: intent.id, text: answer.text, unresolved: Boolean(answer.unresolved) };
+    }
   });
 
   if (bestQA && (!bestIntent || bestQA.score >= bestIntent.score)) {
     return { text: bestQA.response, source: 'knowledge base', intent: bestQA.question };
   }
   if (bestIntent) {
-    return { text: bestIntent.text, source: 'menu data', intent: bestIntent.id };
+    return {
+      text: bestIntent.text,
+      source: 'menu data',
+      intent: bestIntent.id,
+      // The intent matched the topic but found nothing usable: offer the pre-set questions instead.
+      ...(bestIntent.unresolved ? { options: SUGGESTED_QUESTIONS } : {}),
+    };
   }
 
   const index = Math.abs(hashCode(text)) % FALLBACK_RESPONSES.length;
-  return { text: FALLBACK_RESPONSES[index], source: 'fallback' };
+  return { text: FALLBACK_RESPONSES[index], source: 'fallback', options: SUGGESTED_QUESTIONS };
 }
 
 /** Deterministic "random" fallback pick so the same question always gets the same reply. */
@@ -253,5 +285,8 @@ function hashCode(text) {
 }
 
 export function assistantIntro() {
-  return `Hello! I am the ${RESTAURANT_INFO.name} AI assistant. I can answer questions about today's specials, dietary options, allergens, prices, delivery and reservations — or suggest what to order.`;
+  return {
+    text: `Hello! I am the ${RESTAURANT_INFO.name} AI assistant. I can answer questions about today's specials, dietary options, allergens, prices, delivery and reservations — or suggest what to order. Pick one of these to start:`,
+    options: SUGGESTED_QUESTIONS,
+  };
 }

@@ -65,7 +65,10 @@ export const RESTAURANT_INFO = {
     'Allergen information is provided as a guide. Please tell our team about any allergy before ordering.',
 };
 
-/** Quick questions shown as chips under the chat input. */
+/**
+ * Pre-set questions. They are rendered inside the chat transcript: once in the opening message and
+ * again whenever the assistant cannot answer, so the customer can click a question instead of typing.
+ */
 export const SUGGESTED_QUESTIONS = [
   "What are today's specials?",
   'What vegetarian meals do you have?',
@@ -122,7 +125,7 @@ export const INTENTS = [
   {
     id: 'hours',
     label: 'Opening hours',
-    keywords: ['hour', 'hours', 'open', 'opening', 'close', 'closing', 'when are you'],
+    keywords: ['hour', 'hours', 'opening', 'open now', 'are you open', 'closing time', 'close at', 'what time'],
     build: () => `Our opening hours: ${RESTAURANT_INFO.hours.map((h) => `${h.day}: ${h.hours}`).join('; ')}.`,
   },
   {
