@@ -24,7 +24,7 @@ const STEPS = [
 ];
 
 export default function Home() {
-  const { menuItems, addToCart, notify } = useApp();
+  const { menuItems, addToCart, notify, openAssistant } = useApp();
 
   // Derived data with useMemo: recalculated only when the menu changes.
   const specials = useMemo(() => menuItems.filter((item) => item.todaySpecial), [menuItems]);
@@ -51,7 +51,9 @@ export default function Home() {
         <div className="btn-row">
           <Link className="btn primary" to="/menu">Browse the menu</Link>
           <Link className="btn" to="/reserve">Book a table</Link>
-          <Link className="btn" to="/chat">Ask the AI assistant</Link>
+          <button className="btn" onClick={openAssistant}>
+            Ask the AI assistant
+          </button>
         </div>
       </section>
 

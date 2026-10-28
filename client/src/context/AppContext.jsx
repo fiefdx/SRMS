@@ -35,6 +35,12 @@ export function AppProvider({ children }) {
   // Toast notifications are intentionally ephemeral, so they use plain useState.
   const [notifications, setNotifications] = useState([]);
 
+  // UI state: the pop-up AI assistant window (opened from the floating button or a page CTA).
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const openAssistant = useCallback(() => setAssistantOpen(true), []);
+  const closeAssistant = useCallback(() => setAssistantOpen(false), []);
+  const toggleAssistant = useCallback(() => setAssistantOpen((prev) => !prev), []);
+
   // Guest identity for signed-out ordering. Persisted so a refresh keeps the same visitor id.
   const [storedGuestSession, setGuestSession] = usePersistentState('guestSession', null);
   const guestSessionId = useMemo(
@@ -335,6 +341,10 @@ export function AppProvider({ children }) {
       user,
       preferences,
       notifications,
+      assistantOpen,
+      openAssistant,
+      closeAssistant,
+      toggleAssistant,
       tables: TABLES,
       addToCart,
       removeFromCart,
@@ -363,7 +373,8 @@ export function AppProvider({ children }) {
     [
       menuItems, cart, cartCount, cartTotals, orders, reservations, myOrders, myReservations,
       guestSessionId, feedback, user, preferences,
-      notifications, addToCart, removeFromCart, updateQuantity, clearCart, placeOrder,
+      notifications, assistantOpen, openAssistant, closeAssistant, toggleAssistant,
+      addToCart, removeFromCart, updateQuantity, clearCart, placeOrder,
       updateOrderStatus, cancelOrder, findAvailableTable, createReservation, updateReservationStatus,
       deleteReservation, saveMenuItem, deleteMenuItem, toggleAvailability, resetMenu, resetDemoData, signIn,
       signOut, toggleFavourite, setDietaryPreferences, addFeedback, notify, dismissNotification,

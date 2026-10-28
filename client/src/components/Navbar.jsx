@@ -14,7 +14,6 @@ export default function Navbar() {
     { to: '/menu', label: 'Menu' },
     { to: '/reservations', label: 'Reservations' },
     { to: '/orders', label: 'My orders' },
-    { to: '/chat', label: 'AI Assistant' },
   ];
 
   const adminLinks = [

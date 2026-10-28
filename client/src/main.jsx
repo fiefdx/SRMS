@@ -5,7 +5,7 @@ import App from './App';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ToastStack from './components/ToastStack';
-import ChatLauncher from './components/ChatLauncher';
+import ChatDock from './components/ChatDock';
 import { AppProvider } from './context/AppContext';
 import './index.css';
 
@@ -19,7 +19,7 @@ createRoot(document.getElementById('root')).render(
             <App />
           </main>
           <Footer />
-          <ChatLauncher />
+          <ChatDock />
           <ToastStack />
         </div>
       </AppProvider>

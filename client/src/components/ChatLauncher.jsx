@@ -1,21 +1,19 @@
-import { Link, useLocation } from 'react-router-dom';
-
 /**
- * Floating shortcut to the AI assistant: icon only, bottom-right, hidden on the chat page itself and
- * in the admin area. Text stays in aria-label/title so screen readers still announce it.
+ * Floating chat button: icon only, bottom-right. It toggles the pop-up assistant window instead of
+ * navigating to a separate page. Props in / events out — ChatDock owns the open state.
  */
-export default function ChatLauncher() {
-  const { pathname } = useLocation();
-  if (pathname === '/chat' || pathname.startsWith('/admin')) return null;
-
+export default function ChatLauncher({ open, onToggle }) {
   return (
-    <Link
+    <button
+      type="button"
       className="chat-launcher"
-      to="/chat"
-      aria-label="Ask the AI assistant"
-      title="Ask the AI assistant"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-controls="chat-panel"
+      aria-label={open ? 'Close the AI assistant' : 'Ask the AI assistant'}
+      title="AI Menu Assistant"
     >
-      💬
-    </Link>
+      {open ? '✕' : '💬'}
+    </button>
   );
 }

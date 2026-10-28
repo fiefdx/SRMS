@@ -8,7 +8,6 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import Orders from './pages/Orders';
 import Reserve from './pages/Reserve';
 import Reservations from './pages/Reservations';
-import AIChat from './pages/AIChat';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminMenu from './pages/admin/AdminMenu';
@@ -32,7 +31,6 @@ export default function App() {
       <Route path="/orders" element={<Orders />} />
       <Route path="/reserve" element={<Reserve />} />
       <Route path="/reservations" element={<Reservations />} />
-      <Route path="/chat" element={<AIChat />} />
 
       {/* Admin routes share one layout which also enforces the admin role. */}
       <Route element={<AdminLayout />}>
