@@ -41,9 +41,6 @@ export default function Cart() {
         <section className="card">
           <div className="card-heading">
             <h3>Items ({cartCount})</h3>
-            <Link to="/menu" className="small">
-              Add more dishes →
-            </Link>
           </div>
           <CartList
             items={cart}
@@ -87,7 +84,7 @@ export default function Cart() {
               Go to checkout
             </Link>
             <Link className="btn ghost" to="/menu">
-              Keep browsing
+              Keep browsing the menu
             </Link>
           </div>
 
