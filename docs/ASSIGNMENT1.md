@@ -23,7 +23,7 @@ project connects the two.
 | Optional AI assistant (option 2: simulate locally) | `src/services/aiAssistant.js`, `src/data/aiKnowledgeBase.js`, `src/pages/AIChat.jsx`, `src/hooks/useChat.js` |
 | Personalized recommendations from previous orders / popular items | `orderedFrequency()` in `utils/analytics.js` used by the assistant's `recommendations()` and `previousOrder()` |
 | Answer common queries (specials, dietary info) | scripted pairs from the brief in `SIMULATED_QA` + rule intents (hours, delivery, allergens, prices, reservations) |
-| Optional customer accounts: preferences, order history, reservations | `src/pages/Account.jsx` (simulated sign-in, dietary preferences, favourites, activity table), `pages/Orders.jsx`, `pages/Reservations.jsx` |
+| Optional customer accounts: preferences, order history, reservations | `src/pages/Account.jsx` (simulated sign-in, dietary preferences, favourites, activity table), `pages/Orders.jsx`, `pages/Reservations.jsx`. Saving favourite dishes requires an account: `MenuCard` renders the save button disabled (`canSave={!!user}`) and the "My favourites only" filter stays hidden for guests. |
 | Scoped history — signed-out visitors must not see other customers' records | `guestSessionId` in `AppContext.jsx` tags every order/booking with `placedBy`; the store exposes `myOrders` / `myReservations` (account match when signed in, this browser session when signed out) |
 
 ## 2. Admin use case → where it lives

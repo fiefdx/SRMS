@@ -19,6 +19,8 @@ export default function MenuCard({
   isFavourite = false,
   onToggleFavourite,
   showFavourite = false,
+  canSave = true,
+  saveHint = 'Sign in to save dishes to your account',
 }) {
   const price = Number(item.price).toFixed(2);
   const description = truncate(item.description, DESCRIPTION_MAX);
@@ -65,6 +67,8 @@ export default function MenuCard({
           <button
             className="btn small ghost"
             onClick={() => onToggleFavourite?.(item.id)}
+            disabled={!canSave}
+            title={canSave ? (isFavourite ? 'Remove from your saved dishes' : 'Save this dish') : saveHint}
             aria-pressed={isFavourite}
           >
             {isFavourite ? '★ Saved' : '☆ Save'}

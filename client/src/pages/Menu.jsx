@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useApp } from '../hooks/useApp';
 import useMenuFilters from '../hooks/useMenuFilters';
 import MenuFilters from '../components/MenuFilters';
@@ -5,7 +6,7 @@ import MenuCard from '../components/MenuCard';
 import { CATEGORIES } from '../data/menuData';
 
 export default function Menu() {
-  const { menuItems, addToCart, notify, preferences, toggleFavourite } = useApp();
+  const { menuItems, addToCart, notify, preferences, toggleFavourite, user } = useApp();
 
   const { filters, setFilter, toggleDietary, resetFilters, results, activeFilterCount } =
     useMenuFilters(menuItems, preferences.favouriteIds);
@@ -16,6 +17,7 @@ export default function Menu() {
   };
 
   const handleToggleFavourite = (id) => {
+    if (!user) return;
     toggleFavourite(id);
     notify('Favourites updated.', 'info');
   };
@@ -36,6 +38,11 @@ export default function Menu() {
             tags. Filter by category, dietary requirement or price, then add items to your cart.
           </p>
         </div>
+        {!user && (
+          <Link className="btn small" to="/account">
+            Sign in to save favourites
+          </Link>
+        )}
       </div>
 
       <MenuFilters
@@ -46,7 +53,7 @@ export default function Menu() {
         resultCount={results.length}
         totalCount={menuItems.length}
         activeFilterCount={activeFilterCount}
-        showFavouritesToggle={preferences.favouriteIds.length > 0}
+        showFavouritesToggle={!!user && preferences.favouriteIds.length > 0}
       />
 
       {results.length === 0 ? (
@@ -68,7 +75,8 @@ export default function Menu() {
                     item={item}
                     onAdd={handleAdd}
                     showFavourite
-                    isFavourite={preferences.favouriteIds.includes(item.id)}
+                    canSave={!!user}
+                    isFavourite={!!user && preferences.favouriteIds.includes(item.id)}
                     onToggleFavourite={handleToggleFavourite}
                   />
                 ))}
