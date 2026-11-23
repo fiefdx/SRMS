@@ -17,7 +17,7 @@ const orderLine = z
 
 const cartLines = z.array(orderLine).min(1, 'Your cart is empty').max(50, 'Too many lines in one order');
 
-const contact = z
+export const contactSchema = z
   .object({
     name: z.string().trim().min(2, 'Enter your name').max(80),
     email: z
@@ -39,7 +39,7 @@ export const createOrderSchema = z
   .object({
     fulfilment: z.enum(FULFILMENT_TYPES),
     items: cartLines,
-    contact: contact.optional(),
+    contact: contactSchema.optional(),
     deliveryAddress: z.string().trim().min(5, 'Enter a full delivery address').max(200).optional(),
     requestedTime: requestedTime.optional(),
     notes: z.string().trim().max(500).optional(),
