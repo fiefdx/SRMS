@@ -80,6 +80,8 @@ client/                 React + Vite frontend (Assignment 1)
   src/pages             customer pages + admin/ dashboard pages
   scripts/              checkAssistant.mjs (npm run check:ai)
 docs/ASSIGNMENT1.md     brief-to-code map for the customer and admin use cases, run/verify steps
+docs/ASSIGNMENT2.md     backend architecture, data model, security, validation, tests, demo script
+docs/postman/           Postman collection (77 requests) and environment for the API
 server/                 Node.js + Express backend (Assignment 2) — see server/README.md
 ```
 
@@ -90,5 +92,7 @@ Backend: Node.js 20+, Express 5, MySQL (mysql2), zod validation, bcrypt password
 `node:test` + supertest. The frontend still reads `localStorage` until the integration phase switches
 `usePersistentState` to REST calls.
 
-See [docs/ASSIGNMENT1.md](docs/ASSIGNMENT1.md) for the full mapping between the assignment brief and
-the code.
+See [docs/ASSIGNMENT1.md](docs/ASSIGNMENT1.md) for the full mapping between the frontend brief and the code,
+and [docs/ASSIGNMENT2.md](docs/ASSIGNMENT2.md) for the backend: how a request travels through
+routes → validation → controller → service → MySQL, the data model, the role rules, the 103 tests and the
+Postman walkthrough.
