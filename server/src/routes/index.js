@@ -2,8 +2,10 @@ import { Router } from 'express';
 import config from '../config/env.js';
 import { ping } from '../db/pool.js';
 import authRoutes from './authRoutes.js';
+import eventRoutes from './eventRoutes.js';
 import menuRoutes from './menuRoutes.js';
 import orderRoutes from './orderRoutes.js';
+import reservationRoutes from './reservationRoutes.js';
 import userRoutes from './userRoutes.js';
 
 /*
@@ -44,12 +46,16 @@ router.get('/', (req, res) => {
       'PATCH /api/orders/:orderId/items',
       'PATCH /api/orders/:orderId/status',
       'POST /api/orders/:orderId/feedback',
+      'GET  /api/reservations/availability',
+      'POST /api/reservations (customer or guest)',
       'GET  /api/reservations',
-      'POST /api/reservations',
+      'GET  /api/reservations/:reservationId',
       'PATCH /api/reservations/:reservationId',
-      'DELETE /api/reservations/:reservationId',
-      'GET  /api/events',
+      'PATCH /api/reservations/:reservationId/status',
+      'DELETE /api/reservations/:reservationId (admin)',
       'POST /api/events',
+      'GET  /api/events',
+      'PATCH /api/events/:eventId',
       'GET  /api/admin/stats',
       'POST /api/ai/ask',
     ],
@@ -84,5 +90,7 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/menu', menuRoutes);
 router.use('/orders', orderRoutes);
+router.use('/reservations', reservationRoutes);
+router.use('/events', eventRoutes);
 
 export default router;

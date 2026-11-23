@@ -138,6 +138,35 @@ POST   /api/orders/:orderId/feedback      owner or admin, one review per order
   the email they were placed with. Orders that belong to an account are never released by an email match.
 - Feedback keeps `sentiment` NULL: the AI feedback analysis feature fills it in.
 
+## Reservations and events
+
+```
+GET    /api/reservations/availability      public: ?date=&startTime=&endTime=&partySize=&area=
+POST   /api/reservations                   customer or guest (a guest must give name + email)
+GET    /api/reservations                   ?date=&from=&to=&status=&type=&tableId=&search=&limit=&offset=
+GET    /api/reservations/:reservationId    owner or admin
+PATCH  /api/reservations/:reservationId    owner while pending, admin any time
+PATCH  /api/reservations/:reservationId/status   admin approves/completes/cancels; owner may cancel
+DELETE /api/reservations/:reservationId    admin only
+POST   /api/events                         request a birthday / corporate / group booking
+GET    /api/events                         admin: every event request; customer: their own
+PATCH  /api/events/:eventId                admin (or the customer while it is still pending)
+```
+
+- **No double booking.** The slot is checked inside a transaction with
+  `SELECT … WHERE reservation_date = ? AND table_id = ? AND status <> 'cancelled' AND start_time < ? AND
+  end_time > ? FOR UPDATE`, then the booking is inserted before the commit. A unique index cannot express
+  a time range, and a cancelled booking must not keep a table blocked, so the range test plus the row lock
+  is the mechanism. A test fires **two bookings for the same slot at the same time** and asserts exactly one
+  201 and one 409.
+- The **availability query** uses the same overlap condition, so the tables the booking form offers are the
+  tables the booking will actually accept.
+- The slot must be inside the published opening hours (`config/env.js`), the date must be in the future,
+  the table must have room for the party, and the party must fit `MAX_PARTY_SIZE`. If the customer does not
+  choose a table, the smallest free table that fits is assigned.
+- Events are reservations with a type, so the availability rules are written once; the event routes add the
+  fields that matter for an event (occasion, requirements, `menu_selection` expanded into real dishes).
+
 ## Conventions
 
 - **JSON in / JSON out.** Every route lives under `/api`, success responses are plain resources.
