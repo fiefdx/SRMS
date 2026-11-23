@@ -704,6 +704,20 @@ export const ORDER_SEED = [
     notes: 'Cancelled by customer before preparation started.',
     lines: [{ name: 'Classic Beef Burger & Fries', quantity: 1 }],
   },
+  /* A guest order: no account, but the contact details the checkout form collects. */
+  {
+    reference: 'ORD-1006',
+    userEmail: null,
+    contact: { name: 'Walk-in Guest', email: 'guest@example.com', phone: '+1 555 0133' },
+    status: 'preparing',
+    fulfilment: 'pickup',
+    daysAgo: 0,
+    notes: 'Placed without an account.',
+    lines: [
+      { name: 'Gelato Trio', quantity: 2 },
+      { name: 'Artisan Coffee', quantity: 2 },
+    ],
+  },
 ];
 
 /** reservationInDays is relative to "today" so the demo never shows stale dates. */
@@ -746,6 +760,19 @@ export const RESERVATION_SEED = [
     requirements: 'Projector in the room, vegetarian main for everyone.',
     menuSelection: ['Garden Salad', 'Vegetable Pasta'],
     status: 'approved',
+  },
+  {
+    reference: 'RES-5004',
+    userEmail: null,
+    contact: { name: 'Walk-in Guest', email: 'guest@example.com', phone: '+1 555 0133' },
+    type: 'group',
+    tableLabel: 'Booth 2',
+    reservationInDays: 3,
+    startTime: '19:30',
+    endTime: '21:00',
+    partySize: 4,
+    occasion: 'Anniversary dinner, booked as a guest',
+    status: 'pending',
   },
 ];
 
