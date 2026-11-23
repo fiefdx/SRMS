@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import config from '../config/env.js';
 import { ping } from '../db/pool.js';
+import adminRoutes from './adminRoutes.js';
 import authRoutes from './authRoutes.js';
 import eventRoutes from './eventRoutes.js';
 import menuRoutes from './menuRoutes.js';
@@ -56,7 +57,10 @@ router.get('/', (req, res) => {
       'POST /api/events',
       'GET  /api/events',
       'PATCH /api/events/:eventId',
-      'GET  /api/admin/stats',
+      'GET  /api/admin/stats (admin)',
+      'GET  /api/admin/stats/revenue (admin)',
+      'GET  /api/admin/stats/popular (admin)',
+      'GET  /api/admin/feedback (admin)',
       'POST /api/ai/ask',
     ],
   });
@@ -92,5 +96,6 @@ router.use('/menu', menuRoutes);
 router.use('/orders', orderRoutes);
 router.use('/reservations', reservationRoutes);
 router.use('/events', eventRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;

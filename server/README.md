@@ -167,6 +167,22 @@ PATCH  /api/events/:eventId                admin (or the customer while it is st
 - Events are reservations with a type, so the availability rules are written once; the event routes add the
   fields that matter for an event (occasion, requirements, `menu_selection` expanded into real dishes).
 
+## Admin reporting
+
+```
+GET /api/admin/stats                one call with everything the dashboard shows (?days=&popularLimit=)
+GET /api/admin/stats/revenue        daily revenue/order series, empty days filled in for the chart
+GET /api/admin/stats/popular        most ordered dishes (quantity and revenue)
+GET /api/admin/stats/statuses       orders and revenue per status
+GET /api/admin/stats/reservations   bookings, pending approvals, bookings per table today, by type
+GET /api/admin/feedback             customer comments with order reference and customer name
+GET /api/admin/feedback/stats       review count, average rating, sentiment breakdown
+```
+
+`router.use(authenticate, requireAdmin)` guards the whole router, so a forgotten check on one route cannot
+leak trading figures. The numbers are produced by SQL aggregates (`GROUP BY DATE(created_at)`,
+`SUM(oi.quantity)`, `AVG(rating)`), and **cancelled orders are excluded from revenue and popularity**.
+
 ## Conventions
 
 - **JSON in / JSON out.** Every route lives under `/api`, success responses are plain resources.
