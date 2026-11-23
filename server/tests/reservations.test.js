@@ -142,6 +142,7 @@ test('reservations, availability and events', options, async (t) => {
     const overlap = await book({ ...slot, partySize: 2 }, customerToken);
     assert.equal(overlap.status, 409);
     assert.match(overlap.body.error.message, /already booked/i);
+    assert.equal(overlap.body.error.code, 'TABLE_ALREADY_BOOKED');
     assert.equal(overlap.body.error.details.conflictReference, first.body.reservation.reference);
 
     const touching = await book({ ...slot, startTime: '15:00', endTime: '16:00' }, customerToken);

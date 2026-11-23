@@ -46,6 +46,23 @@ test('unknown routes return a JSON 404 in the standard error shape', async () =>
   assert.match(res.body.error.message, /No API route for GET \/api\/not-a-real-route/);
 });
 
+test('every error response carries a stable, machine-readable code', async () => {
+  const cases = [
+    [request(app).get('/api/no-such-route'), 404, 'NOT_FOUND'],
+    [request(app).get('/api/users/me'), 401, 'UNAUTHORIZED'],
+    [request(app).post('/api/orders').send({ fulfilment: 'pickup', items: [] }), 422, 'VALIDATION_FAILED'],
+    [request(app).post('/api/menu').set('Content-Type', 'application/json').send('{"name": '), 400, 'INVALID_JSON'],
+    [request(app).post('/api/health').send({ blob: 'x'.repeat(200_000) }), 413, 'PAYLOAD_TOO_LARGE'],
+  ];
+
+  for (const [call, status, code] of cases) {
+    const res = await call;
+    assert.equal(res.status, status);
+    assert.equal(res.body.error.code, code, `${status} should report ${code}: ${JSON.stringify(res.body.error)}`);
+    assert.ok(res.body.error.message, 'the human-readable message is always present');
+  }
+});
+
 test('malformed JSON is a 400 instead of a 500', async () => {
   const res = await request(app)
     .post('/api/health')

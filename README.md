@@ -94,5 +94,5 @@ Backend: Node.js 20+, Express 5, MySQL (mysql2), zod validation, bcrypt password
 
 See [docs/ASSIGNMENT1.md](docs/ASSIGNMENT1.md) for the full mapping between the frontend brief and the code,
 and [docs/ASSIGNMENT2.md](docs/ASSIGNMENT2.md) for the backend: how a request travels through
-routes → validation → controller → service → MySQL, the data model, the role rules, the 103 tests and the
+routes → validation → controller → service → MySQL, the data model, the role rules, the 104 tests and the
 Postman walkthrough.

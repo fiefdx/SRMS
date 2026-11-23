@@ -243,6 +243,7 @@ test('order management', options, async (t) => {
 
     const jumped = await request(app).patch(`/api/orders/${orderId}/status`).set('Authorization', `Bearer ${adminToken}`).send({ status: 'delivered' });
     assert.equal(jumped.status, 409);
+    assert.equal(jumped.body.error.code, 'INVALID_STATUS_TRANSITION');
     assert.deepEqual(jumped.body.error.details.allowed, ['preparing', 'cancelled'], 'the response says what is allowed next');
 
     for (const status of ['preparing', 'ready', 'delivered']) {
