@@ -57,6 +57,7 @@ router.get('/', (req, res) => {
       'DELETE /api/reservations/:reservationId (admin)',
       'POST /api/events',
       'GET  /api/events',
+      'GET  /api/events/:eventId',
       'PATCH /api/events/:eventId',
       'PATCH /api/events/:eventId/status',
       'GET  /api/admin/stats (admin)',
