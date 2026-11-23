@@ -42,6 +42,15 @@ export async function authenticate(req, res, next) {
   }
 }
 
+/**
+ * Like `authenticate`, but a request without a token is allowed through as a guest. A *bad* token is
+ * still rejected, because a caller who sends one should not silently be treated as a guest.
+ */
+export async function optionalAuthenticate(req, res, next) {
+  if (!readBearerToken(req)) return next();
+  return authenticate(req, res, next);
+}
+
 export function requireAdmin(req, res, next) {
   if (!req.user) return next(ApiError.unauthorized());
   if (req.user.role !== 'admin') return next(ApiError.forbidden('Administrator access is required for this action'));
