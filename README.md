@@ -56,13 +56,15 @@ cp .env.example .env   # JWT_SECRET + MYSQL_URI
 npm run migrate        # create the MySQL schema
 npm run seed           # demo menu, users, orders, reservations, feedback
 npm run dev            # http://localhost:4000
-npm test               # node:test + supertest: API skeleton, pricing rules, MySQL design tests
+npm test               # node:test + supertest: auth, users, pricing rules and MySQL design tests
 npm run lint           # oxlint
 ```
 
-`GET /api` lists the endpoints, `GET /api/health` reports service and database status. Seeded demo
-accounts: `admin@srms.dev`, `demo@srms.dev`, `ana@example.com` (password `demo1234`). See
-[server/README.md](server/README.md) for the layered structure (routes → controllers → services →
+`GET /api` lists the endpoints, `GET /api/health` is the service probe and `GET /api/health/db` the
+database readiness probe. Seeded demo accounts: `admin@srms.dev` (admin), `demo@srms.dev`,
+`ana@example.com` (password `demo1234`). Implemented so far: the MySQL data layer, JWT authentication,
+role-based authorization and user management; menu, order, reservation, event and AI endpoints follow.
+See [server/README.md](server/README.md) for the layered structure (routes → controllers → services →
 data), the MySQL schema and the single JSON error shape used by every route.
 
 ## Repository layout
@@ -84,9 +86,8 @@ server/                 Node.js + Express backend (Assignment 2) — see server/
 ## Tech
 
 React 19, Vite, React Router 7, plain CSS (design tokens in `client/src/index.css`). No UI library.
-Backend: Node.js 20+, Express 5, MySQL (mysql2), zod validation, bcrypt password hashing, `node:test`
-+ supertest. Sessions (JWT) and the resource endpoints are added by the following Assignment 2
-features. The frontend still reads `localStorage` until the integration phase switches
+Backend: Node.js 20+, Express 5, MySQL (mysql2), zod validation, bcrypt password hashing, JWT sessions,
+`node:test` + supertest. The frontend still reads `localStorage` until the integration phase switches
 `usePersistentState` to REST calls.
 
 See [docs/ASSIGNMENT1.md](docs/ASSIGNMENT1.md) for the full mapping between the assignment brief and

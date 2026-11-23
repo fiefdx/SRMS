@@ -73,6 +73,25 @@ GET  /api/auth/me         Authorization: Bearer <token>                     -> 2
 - Demo accounts after `npm run seed`: `admin@srms.dev` (admin), `demo@srms.dev`, `ana@example.com`,
   password `demo1234`.
 
+## User management
+
+```
+GET    /api/users/me              the signed-in profile
+PATCH  /api/users/me              name, phone, address, dietary preferences, password (needs currentPassword)
+GET    /api/users/me/favourites   saved favourites, expanded into menu items
+PUT    /api/users/me/favourites   { itemIds: [...] } replaces the list (unknown ids -> 422)
+GET    /api/users                 admin only: search (?search=&role=&limit=&offset=)
+GET    /api/users/:userId         the customer themselves, or an admin
+PATCH  /api/users/:userId         same, plus `role` for an admin
+DELETE /api/users/:userId         admin only
+```
+
+Rules enforced in the API (`src/services/userService.js`): a customer's own update schema has no `role`
+field at all, so an account cannot escalate itself; only an admin may change a role, nobody may change
+their own role, and the **last administrator cannot be demoted or deleted**; a password change must
+include the correct `currentPassword`; deleting an account also removes its orders and reservations
+(`ON DELETE CASCADE` in the schema) and stops its token from working.
+
 ## Conventions
 
 - **JSON in / JSON out.** Every route lives under `/api`, success responses are plain resources.
