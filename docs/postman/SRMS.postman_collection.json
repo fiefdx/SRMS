@@ -371,7 +371,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"401 response\", () => pm.response.to.have.status(401));",
-                  "pm.test('the message does not say which half was wrong', () => pm.expect(pm.response.json().error.message).to.eql('Email or password is incorrect'));"
+                  "pm.test('the message does not say which half was wrong', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'); pm.expect(pm.response.json().error.message).to.eql('Email or password is incorrect'));"
                 ]
               }
             }
@@ -1594,7 +1594,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"409 response\", () => pm.response.to.have.status(409));",
-                  "pm.test('the workflow is enforced', () => pm.expect(pm.response.json().error.message).to.match(/cannot move/i));"
+                  "pm.test('the workflow is enforced', () => { pm.expect(pm.response.json().error.code).to.eql('INVALID_STATUS_TRANSITION'); pm.expect(pm.response.json().error.message).to.match(/cannot go from/); });"
                 ]
               }
             }
@@ -1836,7 +1836,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"409 response\", () => pm.response.to.have.status(409));",
-                  "pm.test('the clash is reported, not silently accepted', () => pm.expect(pm.response.json().error.message).to.match(/already booked|no longer available/i));"
+                  "pm.test('the clash is reported, not silently accepted', () => { pm.expect(pm.response.json().error.code).to.eql('TABLE_ALREADY_BOOKED'); pm.expect(pm.response.json().error.message).to.match(/already booked/); });"
                 ]
               }
             }
@@ -2760,7 +2760,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"403 response\", () => pm.response.to.have.status(403));"
+                  "pm.test(\"403 response\", () => pm.response.to.have.status(403));",
+                  "pm.test('the refusal is machine readable', () => pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN'));"
                 ]
               }
             }
@@ -3356,7 +3357,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"422 response\", () => pm.response.to.have.status(422));",
-                  "pm.test('the message names the problem', () => pm.expect(pm.response.json().error.message).to.match(/cannot be ordered|not on the menu/i));"
+                  "pm.test('the message names the problem', () => { pm.expect(pm.response.json().error.code).to.eql('CART_NOT_ORDERABLE'); pm.expect(pm.response.json().error.message).to.match(/cannot be ordered/i); });"
                 ]
               }
             }
@@ -3398,7 +3399,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"422 response\", () => pm.response.to.have.status(422));",
-                  "pm.test('the field is reported', () => pm.expect(pm.response.json().error.details[0].path).to.eql('items'));"
+                  "pm.test('the field is reported', () => { pm.expect(pm.response.json().error.code).to.eql('VALIDATION_FAILED'); pm.expect(pm.response.json().error.details[0].field).to.eql('items'); });"
                 ]
               }
             }

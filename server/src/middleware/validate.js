@@ -16,7 +16,7 @@ export default function validate(schema, source = 'body') {
         field: issue.path.join('.') || source,
         message: issue.message,
       }));
-      return next(ApiError.unprocessable('Validation failed', details));
+      return next(ApiError.unprocessable('Validation failed', details, 'VALIDATION_FAILED'));
     }
 
     req.valid = { ...req.valid, [source]: result.data };

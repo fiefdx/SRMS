@@ -101,7 +101,7 @@ async function buildLines(items, uri) {
     lines.push({ menuItemId: dish.id, name: dish.name, unitPrice: Number(dish.price), quantity });
   }
 
-  if (problems.length) throw ApiError.unprocessable('Some items cannot be ordered right now', problems);
+  if (problems.length) throw ApiError.unprocessable('Some items cannot be ordered right now', problems, 'CART_NOT_ORDERABLE');
   return lines;
 }
 
@@ -266,7 +266,7 @@ export async function changeOrderStatus(orderId, status, note, actor, uri) {
     throw ApiError.conflict(`An order cannot go from ${row.status} to ${status}`, {
       from: row.status,
       allowed: ORDER_STATUS_FLOW[row.status],
-    });
+    }, 'INVALID_STATUS_TRANSITION');
   }
 
   if (note) {

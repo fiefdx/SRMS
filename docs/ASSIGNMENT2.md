@@ -22,7 +22,7 @@ npm run seed                  # demo users, 24 dishes, 6 tables, orders, booking
 npm run db:reset              # drop everything and rebuild (handy before a demo)
 
 npm run dev                   # http://localhost:4000 (nodemon)
-npm test                      # 103 tests, node:test + supertest against a throwaway srms_test database
+npm test                      # 104 tests, node:test + supertest against a throwaway srms_test database
 npm run lint                  # oxlint
 ```
 
@@ -137,19 +137,26 @@ PATCH /api/orders/7/status
 { "status": "delivered" }
 
 409 Conflict
-{ "error": { "code": "CONFLICT",
-             "message": "The order is pending; it cannot move to delivered",
-             "details": { "allowed": ["preparing", "cancelled"] } } }
+{ "error": { "code": "INVALID_STATUS_TRANSITION",
+             "message": "An order cannot go from pending to delivered",
+             "details": { "from": "pending", "allowed": ["preparing", "cancelled"] } } }
 ```
 
-| Code | Used for |
-| --- | --- |
-| 400 | the request is understood but cannot be carried out (deleting your own account) |
-| 401 | no token, bad token, wrong password |
-| 403 | signed in but not allowed (customer on an admin route, another customer's profile) |
-| 404 | no such dish, order, booking or route |
-| 409 | the state does not allow it: double booking, cancelled workflow step, duplicate email, sold-out dish |
-| 422 | validation failed — `details[]` names the field and what was wrong |
+The `message` is written for a person and may be reworded; the **`code` is stable**, so the React client can
+switch on it (the two most useful ones: `TABLE_ALREADY_BOOKED`, which comes with the reference it clashes with,
+and `INVALID_STATUS_TRANSITION`, which comes with the states the order may go to next).
+
+| Status | `error.code` | Used for |
+| --- | --- | --- |
+| 400 | `BAD_REQUEST`, `INVALID_JSON` | the request is understood but cannot be carried out (deleting your own account), a body that is not JSON |
+| 401 | `UNAUTHORIZED` | no token, bad token, wrong password |
+| 403 | `FORBIDDEN` | signed in but not allowed (customer on an admin route, another customer's profile) |
+| 404 | `NOT_FOUND` | no such dish, order, booking or route |
+| 409 | `CONFLICT`, `TABLE_ALREADY_BOOKED`, `INVALID_STATUS_TRANSITION`, `NO_TABLE_AVAILABLE`, `DUPLICATE_VALUE` | the state does not allow it: double booking, skipped workflow step, no table big enough, duplicate email |
+| 413 | `PAYLOAD_TOO_LARGE` | a body over the limit |
+| 422 | `VALIDATION_FAILED`, `CART_NOT_ORDERABLE` | field-level validation, or dishes that are not on the menu / sold out — `details[]` names the field and what was wrong |
+| 500 | `INTERNAL_ERROR` | an unexpected failure: logged with a stack trace, never shown to the client |
+| 503 | `SERVICE_UNAVAILABLE` | the database is unreachable or refuses the credentials |
 
 `src/middleware/errorHandler.js` also catches unexpected failures: the message is logged with the request id, and
 the client gets a generic 500 instead of a stack trace. `asyncHandler` means no service has to remember
@@ -200,12 +207,12 @@ not clash with an existing booking.
 ## 8. Tests
 
 ```bash
-npm test        # 103 tests, run with --test-concurrency=1 so the schemas do not race
+npm test        # 104 tests, run with --test-concurrency=1 so the schemas do not race
 ```
 
 | File | Covers |
 | --- | --- |
-| `api.test.js` | the app factory, the endpoint index, 404 envelope, request logging, health |
+| `api.test.js` | the app factory, the endpoint index, the error envelope (a stable `code` for every failure), request logging, health, CORS |
 | `db.test.js` | the schema itself: keys, foreign keys, CHECK constraints, generated column, JSON round trip, DATE/TIME handling |
 | `pricing.test.js` | tax, delivery fee, free-delivery threshold, cancelled/empty carts |
 | `auth.test.js` | register/login, bcrypt, JWT expiry and tampering, duplicate email, role separation |
@@ -260,6 +267,7 @@ The backend was built on feature branches, each merged into `main` with `--no-ff
 | `feature/postman-collection` | the request collection and environment |
 | `feature/api-index-completion` | the self-documented endpoint index |
 | `feature/postman-coverage` | the three endpoints the collection was not yet exercising |
+| `feature/error-codes` | a stable machine-readable `error.code` in every failure response |
 
 ---
 
@@ -277,8 +285,8 @@ The backend was built on feature branches, each merged into `main` with `--no-ff
    `reservationService.js` to point at `SELECT … FOR UPDATE` inside the transaction.
 6. **Admin & AI (2 min)** — the dashboard statistics, then the assistant answering "what do you recommend?" from
    real order data, and the feedback sentiment pass.
-7. **Tests & history (2 min)** — `npm test` (103 passing), one test file open to show how a rule is proven; the
-   git graph with the nine feature branches; Newman running the Postman collection.
+7. **Tests & history (2 min)** — `npm test` (104 passing), one test file open to show how a rule is proven; the
+   git graph with the feature branches; Newman running the Postman collection.
 8. **Close (30 s)** — what is left for the final project: pointing the React client at this API instead of
    `localStorage`.
 

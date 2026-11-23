@@ -109,10 +109,14 @@ async function assertTableIsFree(connection, { tableId, date, startTime, endTime
   if (rows.length === 0) return;
 
   const clash = rows[0];
-  throw ApiError.conflict(`That table is already booked from ${clash.start_time} to ${clash.end_time}`, {
-    conflictReference: clash.reference,
-    overlap: { from: clash.start_time, to: clash.end_time },
-  });
+  throw ApiError.conflict(
+    `That table is already booked from ${clash.start_time} to ${clash.end_time}`,
+    {
+      conflictReference: clash.reference,
+      overlap: { from: clash.start_time, to: clash.end_time },
+    },
+    'TABLE_ALREADY_BOOKED',
+  );
 }
 
 async function assertMenuSelection(ids, uri) {
@@ -177,7 +181,7 @@ export async function createReservation({ payload, actor }, uri) {
           [payload.partySize],
         );
         const free = candidates[0];
-        if (!free[0]) throw ApiError.conflict(`No table seats ${payload.partySize} guests`);
+        if (!free[0]) throw ApiError.conflict(`No table seats ${payload.partySize} guests`, undefined, 'NO_TABLE_AVAILABLE');
         table = free[0];
       }
 
