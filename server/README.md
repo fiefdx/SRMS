@@ -92,6 +92,26 @@ their own role, and the **last administrator cannot be demoted or deleted**; a p
 include the correct `currentPassword`; deleting an account also removes its orders and reservations
 (`ON DELETE CASCADE` in the schema) and stops its token from working.
 
+## Menu management
+
+```
+GET    /api/menu                 public: ?search=&category=&dietary=&freeFrom=&available=&todaySpecial=&sort=&order=&limit=&offset=
+GET    /api/menu/facets          public: category and dietary-tag counts for the filter chips
+GET    /api/menu/:itemId         public
+POST   /api/menu                 admin
+PATCH  /api/menu/:itemId         admin (price, availability, tags, today's special, …)
+DELETE /api/menu/:itemId         admin
+```
+
+- Filtering happens **in SQL**: `LIKE` for the search box and `JSON_CONTAINS(dietary_tags, JSON_QUOTE(?))`
+  for the dietary/allergen lists, so the menu page never downloads the whole menu. Sort columns come from
+  a fixed map, never from the request string.
+- The daily special is **unique**: marking a dish as today's special clears the previous one inside a
+  transaction.
+- `popularity` cannot be posted by a client — it is derived from order lines.
+- Deleting a dish keeps past order lines intact: `order_items` stores the name and unit price at the time
+  of sale, and only `menu_item_id` is set to null (`ON DELETE SET NULL`).
+
 ## Conventions
 
 - **JSON in / JSON out.** Every route lives under `/api`, success responses are plain resources.

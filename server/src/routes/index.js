@@ -2,6 +2,7 @@ import { Router } from 'express';
 import config from '../config/env.js';
 import { ping } from '../db/pool.js';
 import authRoutes from './authRoutes.js';
+import menuRoutes from './menuRoutes.js';
 import userRoutes from './userRoutes.js';
 
 /*
@@ -30,7 +31,11 @@ router.get('/', (req, res) => {
       'PATCH /api/users/:userId',
       'DELETE /api/users/:userId (admin)',
       'GET  /api/menu',
+      'GET  /api/menu/facets',
       'GET  /api/menu/:itemId',
+      'POST /api/menu (admin)',
+      'PATCH /api/menu/:itemId (admin)',
+      'DELETE /api/menu/:itemId (admin)',
       'POST /api/orders',
       'GET  /api/orders',
       'GET  /api/orders/:orderId',
@@ -73,5 +78,6 @@ router.get('/health/db', async (req, res) => {
 /* ---- resource routers ---- */
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/menu', menuRoutes);
 
 export default router;
