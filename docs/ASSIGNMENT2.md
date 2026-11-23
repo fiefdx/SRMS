@@ -224,7 +224,7 @@ skip with a clear message rather than failing obscurely.
 ## 9. Postman (5% of the grade)
 
 [`docs/postman/SRMS.postman_collection.json`](postman/SRMS.postman_collection.json) and
-`SRMS.postman_environment.json` — 77 requests in 10 folders, ordered so the whole collection can be run as a
+`SRMS.postman_environment.json` — 83 requests in 10 folders, ordered so the whole collection can be run as a
 walkthrough (log in first, then the ids are captured into variables as the run goes along).
 
 Import → run **01 Auth** first (`customerToken`, `adminToken` are stored as collection variables) → run
@@ -237,8 +237,9 @@ For the demo video it is also worth running headless:
 npx newman run docs/postman/SRMS.postman_collection.json
 ```
 
-Every request has a test script; the collection was verified end to end against the running API — all 77
-requests return the status their test script expects.
+Every request has a test script, and the collection exercises **every endpoint the API advertises** (48 of
+them). It was verified end to end against the running API — all 83 requests return the status their test script
+expects.
 
 ---
 
@@ -256,7 +257,9 @@ The backend was built on feature branches, each merged into `main` with `--no-ff
 | `feature/reservation-management` | availability, booking transaction, special events |
 | `feature/admin-analytics` | dashboard figures and feedback reporting |
 | `feature/ai-integration` | assistant, sentiment analysis, optional external model |
-| `feature/postman-collection` | the 77-request collection |
+| `feature/postman-collection` | the request collection and environment |
+| `feature/api-index-completion` | the self-documented endpoint index |
+| `feature/postman-coverage` | the three endpoints the collection was not yet exercising |
 
 ---
 
