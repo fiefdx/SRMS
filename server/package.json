@@ -1,0 +1,28 @@
+{
+  "name": "srms-server",
+  "private": true,
+  "version": "0.0.0",
+  "description": "SRMS backend: Node.js + Express REST API for users, menu, orders, reservations and events",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "lint": "oxlint src tests",
+    "test": "node --test",
+    "seed": "node scripts/seed.js",
+    "test:watch": "node --test --watch"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "oxlint": "^1.29.0",
+    "supertest": "^7.1.4"
+  }
+}
