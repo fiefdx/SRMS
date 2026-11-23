@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import config from '../config/env.js';
+import { ping } from '../db/pool.js';
 
 /*
  * API entry point. Feature routers are mounted here as they are built:
@@ -14,6 +15,7 @@ router.get('/', (req, res) => {
     env: config.nodeEnv,
     endpoints: [
       'GET  /api/health',
+      'GET  /api/health/db',
       'POST /api/auth/register',
       'POST /api/auth/login',
       'GET  /api/auth/me',
@@ -44,6 +46,20 @@ router.get('/health', (req, res) => {
     env: config.nodeEnv,
     time: new Date().toISOString(),
   });
+});
+
+/**
+ * Readiness probe: answers 200 only when the database answers, so this is the endpoint to watch in a
+ * deploy. It is deliberately separate from /health, which must keep working while the database is
+ * down, and it never opens a connection pool for a probe.
+ */
+router.get('/health/db', async (req, res) => {
+  try {
+    const connected = await ping();
+    res.json({ status: 'ok', database: connected ? 'connected' : 'not connected' });
+  } catch (error) {
+    res.status(503).json({ status: 'error', database: `unavailable: ${error.code ?? error.message}` });
+  }
 });
 
 export default router;

@@ -12,13 +12,21 @@
     "start": "node src/index.js",
     "lint": "oxlint src tests",
     "test": "node --test",
+    "migrate": "node scripts/migrate.js",
+    "migrate:fresh": "node scripts/migrate.js --fresh",
     "seed": "node scripts/seed.js",
-    "test:watch": "node --test --watch"
+    "db:reset": "npm run migrate:fresh && npm run seed",
+    "test:watch": "node --test --watch",
+    "migrate": "node scripts/migrate.js",
+    "migrate:fresh": "node scripts/migrate.js --fresh",
+    "db:reset": "npm run migrate:fresh && npm run seed"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "mysql2": "^3.24.6",
     "zod": "^4.1.12"
   },
   "devDependencies": {

@@ -31,9 +31,12 @@ export const config = {
     expiresIn: process.env.JWT_EXPIRES_IN || '8h',
   },
   db: {
-    client: process.env.DB_CLIENT || 'mongodb',
-    uri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/srms',
-    mysqlUri: process.env.MYSQL_URI || 'mysql://root@localhost:3306/srms',
+    /* MySQL connection strings. The test URI is a separate schema so tests can drop and reseed
+       without touching development data. */
+    uri: process.env.MYSQL_URI || 'mysql://root@127.0.0.1:3306/srms',
+    testUri: process.env.MYSQL_TEST_URI || 'mysql://root@127.0.0.1:3306/srms_test',
+    poolSize: Number(process.env.DB_POOL_SIZE || 10),
+    connectTimeoutMs: Number(process.env.DB_CONNECT_TIMEOUT_MS || 4000),
   },
   /* Values that mirror the frontend demo data; the database layer seeds with these. */
   restaurant: {

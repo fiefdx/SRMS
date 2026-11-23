@@ -1,14 +1,20 @@
 /**
- * API skeleton tests (node:test + supertest). They exercise the app factory without a database or a
- * listening port: routing, the JSON error envelope and the error middleware.
+ * API skeleton tests (node:test + supertest). They exercise the app factory without a listening port:
+ * routing, the JSON error envelope and the error middleware. The health check opens a database pool,
+ * so the after hook closes it to let the process exit instead of waiting on idle MySQL sockets.
  */
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 
 process.env.NODE_ENV = 'test';
 const { createApp } = await import('../src/app.js');
 const { default: config } = await import('../src/config/env.js');
+const { closePools } = await import('../src/db/pool.js');
+
+after(async () => {
+  await closePools();
+});
 
 const app = createApp();
 
@@ -18,6 +24,13 @@ test('GET /api/health reports the service is up', async () => {
   assert.equal(res.body.status, 'ok');
   assert.equal(res.body.env, 'test');
   assert.ok(typeof res.body.uptimeSeconds === 'number');
+});
+
+test('GET /api/health/db is the database readiness probe', async () => {
+  const res = await request(app).get('/api/health/db');
+  // 200 when MySQL answers, 503 when it does not — both are correct API behaviour.
+  assert.ok([200, 503].includes(res.status), `unexpected status ${res.status}`);
+  assert.ok(typeof res.body.database === 'string');
 });
 
 test('GET /api lists the endpoints the frontend will call', async () => {
