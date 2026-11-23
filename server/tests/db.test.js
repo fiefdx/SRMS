@@ -39,9 +39,29 @@ test('database', options, async (t) => {
     assert.equal(counts.users, 3);
     assert.equal(counts.menu_items, 24);
     assert.equal(counts.restaurant_tables, 6);
-    assert.equal(counts.orders, 5);
-    assert.equal(counts.order_items, 11);
+    assert.equal(counts.orders, 6);
+    assert.equal(counts.order_items, 13);
     assert.equal(counts.feedback, 3);
+  });
+
+  await t.test('an order must belong to an account or to a guest with contact details', async () => {
+    await assert.rejects(
+      () => execute('INSERT INTO orders (reference) VALUES (?)', ['ORD-9001'], uri),
+      (error) => /Check constraint/i.test(error.message),
+      'the schema refuses an order nobody can be contacted about',
+    );
+
+    const result = await execute(
+      'INSERT INTO orders (reference, contact_name, contact_email, total) VALUES (?, ?, ?, 10)',
+      ['ORD-9002', 'Guest', 'guest@example.com'],
+      uri,
+    );
+    assert.ok(result.insertId > 0, 'a guest order with an email is allowed');
+    await execute('DELETE FROM orders WHERE id = ?', [result.insertId], uri);
+
+    const reservations = await query('SELECT reference, user_id, contact_email FROM reservations ORDER BY reference', [], uri);
+    assert.equal(reservations.length, 4);
+    assert.equal(reservations[3].contact_email, 'guest@example.com', 'the guest booking has no account but can be contacted');
   });
 
   await t.test('stored order totals match the pricing service', async () => {

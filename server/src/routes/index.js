@@ -3,6 +3,7 @@ import config from '../config/env.js';
 import { ping } from '../db/pool.js';
 import authRoutes from './authRoutes.js';
 import menuRoutes from './menuRoutes.js';
+import orderRoutes from './orderRoutes.js';
 import userRoutes from './userRoutes.js';
 
 /*
@@ -36,10 +37,13 @@ router.get('/', (req, res) => {
       'POST /api/menu (admin)',
       'PATCH /api/menu/:itemId (admin)',
       'DELETE /api/menu/:itemId (admin)',
-      'POST /api/orders',
+      'POST /api/orders (customer or guest)',
       'GET  /api/orders',
+      'GET  /api/orders/reference/:reference',
       'GET  /api/orders/:orderId',
       'PATCH /api/orders/:orderId/items',
+      'PATCH /api/orders/:orderId/status',
+      'POST /api/orders/:orderId/feedback',
       'GET  /api/reservations',
       'POST /api/reservations',
       'PATCH /api/reservations/:reservationId',
@@ -79,5 +83,6 @@ router.get('/health/db', async (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/menu', menuRoutes);
+router.use('/orders', orderRoutes);
 
 export default router;

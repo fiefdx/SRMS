@@ -125,11 +125,14 @@ export async function seedDatabase({ uri = defaultUri(), password = DEMO_PASSWOR
     const placedAt = dateInDays(order.daysAgo);
 
     const result = await execute(
-      `INSERT INTO orders (reference, user_id, status, fulfilment, fulfilment_details, notes, subtotal, delivery_fee, tax, total, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO orders (reference, user_id, contact_name, contact_email, contact_phone, status, fulfilment, fulfilment_details, notes, subtotal, delivery_fee, tax, total, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         order.reference,
-        userIds.get(order.userEmail),
+        order.userEmail ? userIds.get(order.userEmail) : null,
+        order.contact?.name ?? null,
+        order.contact?.email ?? null,
+        order.contact?.phone ?? null,
         order.status,
         order.fulfilment,
         JSON.stringify({
@@ -161,11 +164,14 @@ export async function seedDatabase({ uri = defaultUri(), password = DEMO_PASSWOR
   for (const reservation of RESERVATION_SEED) {
     const day = dateInDays(reservation.reservationInDays);
     await execute(
-      `INSERT INTO reservations (reference, user_id, type, table_id, reservation_date, start_time, end_time, party_size, occasion, requirements, menu_selection, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO reservations (reference, user_id, contact_name, contact_email, contact_phone, type, table_id, reservation_date, start_time, end_time, party_size, occasion, requirements, menu_selection, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         reservation.reference,
-        userIds.get(reservation.userEmail),
+        reservation.userEmail ? userIds.get(reservation.userEmail) : null,
+        reservation.contact?.name ?? null,
+        reservation.contact?.email ?? null,
+        reservation.contact?.phone ?? null,
         reservation.type,
         tableByLabel.get(reservation.tableLabel) ?? null,
         asDate(day),
@@ -187,7 +193,7 @@ export async function seedDatabase({ uri = defaultUri(), password = DEMO_PASSWOR
     const order = ORDER_SEED.find((o) => o.reference === entry.orderReference);
     await execute(
       'INSERT INTO feedback (order_id, user_id, rating, comment) VALUES (?, ?, ?, ?)',
-      [orderId, userIds.get(order.userEmail), entry.rating, entry.comment],
+      [orderId, order.userEmail ? userIds.get(order.userEmail) : null, entry.rating, entry.comment],
       uri,
     );
   }

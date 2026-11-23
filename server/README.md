@@ -46,9 +46,9 @@ server/
 | `users` | customers and administrators | unique email, `role ENUM('customer','admin')`, bcrypt password hash, dietary preferences and favourites as JSON |
 | `menu_items` | the menu | unique name, `category ENUM`, price `DECIMAL(8,2)` with `CHECK (price > 0)`, ingredients/allergens/dietary tags as JSON, `available`, `today_special`, `popularity` |
 | `restaurant_tables` | bookable tables | unique label, seat count with `CHECK (seats > 0)`, area |
-| `orders` | one order per customer | unique reference, status enum, fulfilment details JSON, stored subtotal/fee/tax/total, index on `(user_id, status)` for "my orders" |
+| `orders` | one order per customer **or guest** | unique reference, status enum, fulfilment details JSON, stored subtotal/fee/tax/total, `user_id` nullable with contact name/email/phone for guests (a CHECK requires one or the other), index on `(user_id, status)` for "my orders" and on `contact_email` for the guest lookup |
 | `order_items` | order lines | keeps the **name and unit price at purchase time**, `line_total` is a generated column (`unit_price * quantity`), cascade delete with the order |
-| `reservations` | tables **and** event bookings | `type ENUM('standard','birthday','corporate','group')`, date/time/party size with checks, occasion + requirements + `menu_selection` for events, index on `(reservation_date, start_time)` for the availability query |
+| `reservations` | tables **and** event bookings, for members and guests | `type ENUM('standard','birthday','corporate','group')`, date/time/party size with checks, occasion + requirements + `menu_selection` for events, `user_id` nullable + contact columns (CHECK requires one), index on `(reservation_date, start_time)` for the availability query |
 | `feedback` | customer comments | rating 1–5 checked, link to the order, `sentiment` filled by the AI feedback analysis feature |
 
 Double booking is prevented in a transaction (`SELECT … FOR UPDATE`) rather than by a unique index,
@@ -111,6 +111,32 @@ DELETE /api/menu/:itemId         admin
 - `popularity` cannot be posted by a client — it is derived from order lines.
 - Deleting a dish keeps past order lines intact: `order_items` stores the name and unit price at the time
   of sale, and only `menu_item_id` is set to null (`ON DELETE SET NULL`).
+
+## Order management
+
+```
+POST   /api/orders                        customer or guest (a guest must give name + email)
+GET    /api/orders                        ?status=&search=&order=&limit=&offset=
+GET    /api/orders/reference/:reference   the receipt lookup (+ ?email= for a guest order)
+GET    /api/orders/:orderId               owner or admin
+PATCH  /api/orders/:orderId/items         owner while the order is pending, or an admin
+PATCH  /api/orders/:orderId/status        admin moves it along the flow; the owner may cancel while pending
+POST   /api/orders/:orderId/feedback      owner or admin, one review per order
+```
+
+- **Prices are never taken from the request.** The client sends dish ids and quantities; the lines and the
+  totals (`src/services/pricing.js`) are built from the menu rows inside one transaction, and the schema
+  is strict, so `unitPrice`/`total` in the payload is a 422. Duplicate dish ids are merged into one line.
+- A dish that is switched off or no longer on the menu is refused **per line** (`details[].message`), which
+  is what the cart UI needs to show.
+- The reference is generated (`ORD-1001`, `ORD-1002`, …) from the row id inside the same transaction, so it
+  is short, readable and collision-free.
+- Status flow `pending → preparing → ready → delivered` (+ `cancelled`) lives in the service
+  (`ORDER_STATUS_FLOW`). A refused jump returns 409 **with the list of allowed next states**. Ownership is
+  checked before the state rule, so a stranger gets 403 rather than leaking the order's state.
+- Guest orders have `user_id = NULL` plus contact details; they can be read back with the reference and
+  the email they were placed with. Orders that belong to an account are never released by an email match.
+- Feedback keeps `sentiment` NULL: the AI feedback analysis feature fills it in.
 
 ## Conventions
 

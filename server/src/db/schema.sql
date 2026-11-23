@@ -58,7 +58,12 @@ CREATE TABLE IF NOT EXISTS restaurant_tables (
 CREATE TABLE IF NOT EXISTS orders (
   id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   reference         VARCHAR(20) NOT NULL,
-  user_id           INT UNSIGNED NOT NULL,
+  /* An order belongs to an account or to a guest who left contact details (Assignment 1 lets customers
+     order without signing in), so user_id is nullable but one of the two must be present. */
+  user_id           INT UNSIGNED NULL,
+  contact_name      VARCHAR(80),
+  contact_email     VARCHAR(120),
+  contact_phone     VARCHAR(30),
   status            ENUM('pending', 'preparing', 'ready', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
   fulfilment        ENUM('delivery', 'pickup') NOT NULL DEFAULT 'delivery',
   fulfilment_details JSON,
@@ -71,9 +76,11 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_orders_reference (reference),
   KEY idx_orders_user_status (user_id, status),
+  KEY idx_orders_contact_email (contact_email),
   KEY idx_orders_created (created_at),
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-  CONSTRAINT chk_orders_total CHECK (total >= 0)
+  CONSTRAINT chk_orders_total CHECK (total >= 0),
+  CONSTRAINT chk_orders_owner CHECK (user_id IS NOT NULL OR contact_email IS NOT NULL)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -93,7 +100,10 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE TABLE IF NOT EXISTS reservations (
   id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   reference      VARCHAR(20) NOT NULL,
-  user_id        INT UNSIGNED NOT NULL,
+  user_id        INT UNSIGNED NULL,
+  contact_name   VARCHAR(80),
+  contact_email  VARCHAR(120),
+  contact_phone  VARCHAR(30),
   type           ENUM('standard', 'birthday', 'corporate', 'group') NOT NULL DEFAULT 'standard',
   table_id       INT UNSIGNED,
   reservation_date DATE NOT NULL,
@@ -109,11 +119,13 @@ CREATE TABLE IF NOT EXISTS reservations (
   UNIQUE KEY uq_reservations_reference (reference),
   KEY idx_reservations_slot (reservation_date, start_time),
   KEY idx_reservations_user (user_id),
+  KEY idx_reservations_contact_email (contact_email),
   KEY idx_reservations_type (type),
   CONSTRAINT fk_reservations_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
   CONSTRAINT fk_reservations_table FOREIGN KEY (table_id) REFERENCES restaurant_tables (id) ON DELETE SET NULL,
   CONSTRAINT chk_reservation_party CHECK (party_size >= 1 AND party_size <= 40),
-  CONSTRAINT chk_reservation_time CHECK (end_time > start_time)
+  CONSTRAINT chk_reservation_time CHECK (end_time > start_time),
+  CONSTRAINT chk_reservations_owner CHECK (user_id IS NOT NULL OR contact_email IS NOT NULL)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS feedback (
