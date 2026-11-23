@@ -2,6 +2,7 @@ import { Router } from 'express';
 import config from '../config/env.js';
 import { ping } from '../db/pool.js';
 import adminRoutes from './adminRoutes.js';
+import aiRoutes from './aiRoutes.js';
 import authRoutes from './authRoutes.js';
 import eventRoutes from './eventRoutes.js';
 import menuRoutes from './menuRoutes.js';
@@ -62,6 +63,8 @@ router.get('/', (req, res) => {
       'GET  /api/admin/stats/popular (admin)',
       'GET  /api/admin/feedback (admin)',
       'POST /api/ai/ask',
+      'POST /api/admin/feedback/analyze (admin)',
+      'GET  /api/admin/feedback/summary (admin)',
     ],
   });
 });
@@ -97,5 +100,6 @@ router.use('/orders', orderRoutes);
 router.use('/reservations', reservationRoutes);
 router.use('/events', eventRoutes);
 router.use('/admin', adminRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;

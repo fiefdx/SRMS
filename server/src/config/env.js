@@ -38,6 +38,13 @@ export const config = {
     poolSize: Number(process.env.DB_POOL_SIZE || 10),
     connectTimeoutMs: Number(process.env.DB_CONNECT_TIMEOUT_MS || 4000),
   },
+  /* Optional external AI provider (see src/services/ai/llm.js). Without a key the assistant and the
+     feedback analysis fall back to local, explainable rules, so the API works offline. */
+  ai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+    baseUrl: process.env.AI_BASE_URL || 'https://api.openai.com/v1',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  },
   /* Values that mirror the frontend demo data; the database layer seeds with these. */
   restaurant: {
     name: process.env.RESTAURANT_NAME || 'Bella Vista',
