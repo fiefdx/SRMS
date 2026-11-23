@@ -2,9 +2,9 @@
 
 Course: SODV2201 Final Project
 
-**Current phase: Assignment 1 — React frontend** (`client/`).
-Assignment 2 (Node.js/Express backend + database) and the fullstack integration will be added in
-later phases of this same repository.
+**Current phase: Assignment 2 — Node.js + Express backend** (`server/`). Assignment 1 (React
+frontend, `client/`) is complete; the fullstack integration (frontend calling the API) is the next
+phase in this same repository.
 
 ## Assignment 1 — what is implemented
 
@@ -47,6 +47,21 @@ recording.
 Data is kept in `localStorage` during Assignment 1; clear the site storage to remove the demo
 account as well.
 
+## Backend (Assignment 2)
+
+```bash
+cd server
+npm install
+cp .env.example .env   # JWT_SECRET + database URI
+npm run dev            # http://localhost:4000
+npm test               # node:test + supertest
+npm run lint           # oxlint
+```
+
+`GET /api` lists the endpoints, `GET /api/health` is the health probe. See
+[server/README.md](server/README.md) for the layered structure (routes → controllers → services →
+data) and the single JSON error shape used by every route.
+
 ## Repository layout
 
 ```
@@ -60,14 +75,15 @@ client/                 React + Vite frontend (Assignment 1)
   src/pages             customer pages + admin/ dashboard pages
   scripts/              checkAssistant.mjs (npm run check:ai)
 docs/ASSIGNMENT1.md     brief-to-code map for the customer and admin use cases, run/verify steps
-server/                 Node.js + Express backend (added in Assignment 2)
+server/                 Node.js + Express backend (Assignment 2) — see server/README.md
 ```
 
 ## Tech
 
-React 19, Vite, React Router 7, plain CSS (design tokens in `client/src/index.css`). No UI library,
-no backend calls yet: Assignment 2 adds Express + a database and the frontend switches from
-`usePersistentState` to REST calls.
+React 19, Vite, React Router 7, plain CSS (design tokens in `client/src/index.css`). No UI library.
+Backend: Node.js 20+, Express 5, zod validation, `node:test` + supertest, plus the database driver
+chosen for the data layer. The frontend still reads `localStorage` until the integration phase
+switches `usePersistentState` to REST calls.
 
 See [docs/ASSIGNMENT1.md](docs/ASSIGNMENT1.md) for the full mapping between the assignment brief and
 the code.
