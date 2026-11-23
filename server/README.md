@@ -54,6 +54,44 @@ server/
 Double booking is prevented in a transaction (`SELECT … FOR UPDATE`) rather than by a unique index,
 because a cancelled booking must not keep the table blocked for that slot.
 
+## Authentication and authorization
+
+```
+POST /api/auth/register   name, email, password (8+ chars, letter + number)  -> 201 { user, token }
+POST /api/auth/login      email, password                                   -> 200 { user, token }
+GET  /api/auth/me         Authorization: Bearer <token>                     -> 200 { user }
+```
+
+- Passwords are stored as **bcrypt** hashes and are never returned by the API.
+- A successful sign-in returns a **JWT** (`sub` = user id). `authenticate` verifies it on every request
+  and re-reads the account, so a deleted or demoted account cannot keep using an old token.
+- `requireAdmin` (403 for customers) and `requireSelfOrAdmin` (customers may only touch their own
+  records) provide the **role-based access** the brief asks for. The frontend hides admin controls,
+  but the API is what actually refuses the request.
+- A wrong email and a wrong password return the same message, so the endpoint cannot be used to
+  discover which addresses have accounts.
+- Demo accounts after `npm run seed`: `admin@srms.dev` (admin), `demo@srms.dev`, `ana@example.com`,
+  password `demo1234`.
+
+## User management
+
+```
+GET    /api/users/me              the signed-in profile
+PATCH  /api/users/me              name, phone, address, dietary preferences, password (needs currentPassword)
+GET    /api/users/me/favourites   saved favourites, expanded into menu items
+PUT    /api/users/me/favourites   { itemIds: [...] } replaces the list (unknown ids -> 422)
+GET    /api/users                 admin only: search (?search=&role=&limit=&offset=)
+GET    /api/users/:userId         the customer themselves, or an admin
+PATCH  /api/users/:userId         same, plus `role` for an admin
+DELETE /api/users/:userId         admin only
+```
+
+Rules enforced in the API (`src/services/userService.js`): a customer's own update schema has no `role`
+field at all, so an account cannot escalate itself; only an admin may change a role, nobody may change
+their own role, and the **last administrator cannot be demoted or deleted**; a password change must
+include the correct `currentPassword`; deleting an account also removes its orders and reservations
+(`ON DELETE CASCADE` in the schema) and stops its token from working.
+
 ## Conventions
 
 - **JSON in / JSON out.** Every route lives under `/api`, success responses are plain resources.

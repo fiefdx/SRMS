@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import config from '../config/env.js';
 import { ping } from '../db/pool.js';
+import authRoutes from './authRoutes.js';
+import userRoutes from './userRoutes.js';
 
 /*
  * API entry point. Feature routers are mounted here as they are built:
@@ -21,6 +23,12 @@ router.get('/', (req, res) => {
       'GET  /api/auth/me',
       'GET  /api/users/me',
       'PATCH /api/users/me',
+      'GET  /api/users/me/favourites',
+      'PUT  /api/users/me/favourites',
+      'GET  /api/users (admin)',
+      'GET  /api/users/:userId',
+      'PATCH /api/users/:userId',
+      'DELETE /api/users/:userId (admin)',
       'GET  /api/menu',
       'GET  /api/menu/:itemId',
       'POST /api/orders',
@@ -61,5 +69,9 @@ router.get('/health/db', async (req, res) => {
     res.status(503).json({ status: 'error', database: `unavailable: ${error.code ?? error.message}` });
   }
 });
+
+/* ---- resource routers ---- */
+router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
 
 export default router;
