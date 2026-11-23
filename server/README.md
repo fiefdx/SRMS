@@ -183,6 +183,28 @@ GET /api/admin/feedback/stats       review count, average rating, sentiment brea
 leak trading figures. The numbers are produced by SQL aggregates (`GROUP BY DATE(created_at)`,
 `SUM(oi.quantity)`, `AVG(rating)`), and **cancelled orders are excluded from revenue and popularity**.
 
+## AI features
+
+```
+POST /api/ai/ask                        the customer assistant (token optional)
+POST /api/admin/feedback/analyze        label feedback sentiment (?force=true to redo every row)
+GET  /api/admin/feedback/summary        short written brief (?provider=ai to try an external model)
+```
+
+**The assistant answers from the database, not from memorised strings.** "What are today's specials?" reads
+`menu_items.today_special`, "What do you recommend?" ranks by real `order_items` quantities, "What did I
+order last time?" reads that customer's latest non-cancelled order, and "where is my order?" answers only for
+the owner. A question it cannot resolve comes back as an honest fallback with the suggested questions rather
+than an invented answer.
+
+**Sentiment** uses a local, explainable classifier (`services/ai/sentiment.js`): the star rating is the
+strongest signal, a food-service lexicon breaks ties, and every verdict returns the matched words and the
+reason, so the restaurant can see why a review was labelled that way.
+
+**Optional external model.** Set `OPENAI_API_KEY` (plus `AI_BASE_URL` / `OPENAI_MODEL`) and
+`?provider=ai` asks an OpenAI-compatible endpoint to write the feedback brief. With no key set, or if the
+call fails, the API returns the local brief and says so in `note` — no endpoint depends on the network.
+
 ## Conventions
 
 - **JSON in / JSON out.** Every route lives under `/api`, success responses are plain resources.

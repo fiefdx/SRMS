@@ -7,6 +7,8 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { dashboardQuerySchema, feedbackQuerySchema, popularQuerySchema, revenueQuerySchema } from '../validation/adminSchemas.js';
+import { analyseFeedbackSchema, feedbackBriefQuerySchema } from '../validation/aiSchemas.js';
+import { analyseFeedbackHandler, feedbackSummary } from '../controllers/aiController.js';
 import {
   readDashboard,
   readFeedback,
@@ -28,5 +30,9 @@ router.get('/stats/statuses', asyncHandler(readStatuses));
 router.get('/stats/reservations', asyncHandler(readReservations));
 router.get('/feedback/stats', asyncHandler(readFeedbackStats));
 router.get('/feedback', validate(feedbackQuerySchema, 'query'), asyncHandler(readFeedback));
+
+/* AI-assisted feedback analysis: label the sentiment of each comment, and write a short brief. */
+router.post('/feedback/analyze', validate(analyseFeedbackSchema), asyncHandler(analyseFeedbackHandler));
+router.get('/feedback/summary', validate(feedbackBriefQuerySchema, 'query'), asyncHandler(feedbackSummary));
 
 export default router;
