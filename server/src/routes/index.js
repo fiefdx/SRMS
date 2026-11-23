@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import config from '../config/env.js';
 import { ping } from '../db/pool.js';
+import authRoutes from './authRoutes.js';
 
 /*
  * API entry point. Feature routers are mounted here as they are built:
@@ -61,5 +62,8 @@ router.get('/health/db', async (req, res) => {
     res.status(503).json({ status: 'error', database: `unavailable: ${error.code ?? error.message}` });
   }
 });
+
+/* ---- resource routers ---- */
+router.use('/auth', authRoutes);
 
 export default router;
