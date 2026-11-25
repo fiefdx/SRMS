@@ -230,23 +230,58 @@ skip with a clear message rather than failing obscurely.
 
 ## 9. Postman (5% of the grade)
 
-[`docs/postman/SRMS.postman_collection.json`](postman/SRMS.postman_collection.json) and
-`SRMS.postman_environment.json` — 83 requests in 10 folders, ordered so the whole collection can be run as a
-walkthrough (log in first, then the ids are captured into variables as the run goes along).
+Files: [`docs/postman/SRMS.postman_collection.json`](postman/SRMS.postman_collection.json) and
+`SRMS.postman_environment.json` — 83 requests in 10 folders, covering **every endpoint the API advertises**
+(48 of them). Every request has a test script; verified end to end against the running API, all 83 return the
+status, message and `error.code` their scripts expect.
 
-Import → run **01 Auth** first (`customerToken`, `adminToken` are stored as collection variables) → run
-everything in order. Reset the demo data first (`npm run db:reset`), because the reservation folder uses fixed
-dates in 2030.
+### Set up (once)
 
-For the demo video it is also worth running headless:
+```bash
+cd server && npm run db:reset && npm run dev      # MySQL + the API on http://localhost:4000
+```
+
+1. Postman → **Import** → drag in `SRMS.postman_collection.json` (and the environment file if you want a
+   named environment; the collection already defines its own variables, so this is optional).
+2. Select the collection and open the **Variables** tab: `baseUrl` is `http://localhost:4000/api` — change only
+   that if the API runs somewhere else.
+3. Run **00 Health & discovery → Database readiness** first: it should report `"database": "connected"`.
+
+### Running it
+
+Run the folders **top to bottom** — the collection feeds itself:
+
+| Folder | What it proves |
+| --- | --- |
+| 01 Auth | the two logins store `customerToken` / `adminToken`; registering stores `newUserId` / `newUserToken` |
+| 02 Menu | browsing and SQL filters; an admin creates a dish, edits it, deletes it (`menuItemId`) |
+| 03 Users | own profile and favourites, admin listing, the role and deletion guards |
+| 04 Orders | server-side totals, `orderId` / `orderReference` captured, the workflow 409, feedback |
+| 05 Reservations | availability, a booking (`reservationId`, `tableId`), then the same slot again → 409 |
+| 06 Special events | an event request (`eventId`), notes while pending, approval, then the 409 for editing an approved booking |
+| 07 Admin reporting | the figures, and the arithmetic test that the status breakdown adds up to the headline |
+| 08 AI | the assistant questions and the sentiment pass |
+| 09 Errors | the one error envelope: 401 / 403 / 404 / 409 / 422 |
+
+**Before a full re-run: `npm run db:reset`.** Folders 05 and 06 book fixed dates in 2030, so the bookings from
+the previous run are still in the way and the first booking request would legitimately fail with a clash.
+
+**If a guarded request returns 401**, the token has expired (8 h) or you skipped 01 — run *Log in (customer)*
+and *Log in (admin)* again. The Authorization header is set per request as `Bearer {{customerToken}}` or
+`Bearer {{adminToken}}`, so you can see exactly which identity each call uses.
+
+**Reading a failure:** the **Tests** tab under a response shows which assertion passed or failed, and the body
+carries `{ "error": { "code", "message", "details?" } }` — switch on the code, read the message.
+
+### Headless (handy for the video)
 
 ```bash
 npx newman run docs/postman/SRMS.postman_collection.json
+npx newman run docs/postman/SRMS.postman_collection.json -n docs/postman/SRMS.postman_environment.json
 ```
 
-Every request has a test script, and the collection exercises **every endpoint the API advertises** (48 of
-them). It was verified end to end against the running API — all 83 requests return the status their test script
-expects.
+Newman runs the same test scripts, so the pass/fail counts on screen are real evidence rather than green ticks
+in a GUI.
 
 ---
 

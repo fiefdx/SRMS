@@ -48,6 +48,10 @@
     {
       "key": "eventId",
       "value": ""
+    },
+    {
+      "key": "tableId",
+      "value": ""
     }
   ],
   "item": [
