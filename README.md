@@ -81,7 +81,7 @@ client/                 React + Vite frontend (Assignment 1)
   scripts/              checkAssistant.mjs (npm run check:ai)
 docs/ASSIGNMENT1.md     brief-to-code map for the customer and admin use cases, run/verify steps
 docs/ASSIGNMENT2.md     backend architecture, data model, security, validation, tests, demo script
-docs/postman/           Postman collection (83 requests, every advertised endpoint) and environment for the API
+docs/postman/           Postman collections: 14-request demo + 83-request full (every advertised endpoint)
 server/                 Node.js + Express backend (Assignment 2) — see server/README.md
 ```
 
