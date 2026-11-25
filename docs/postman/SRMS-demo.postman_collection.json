@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "SRMS — DEMO (Assignment 2 walkthrough)",
-    "description": "The 14 requests to show on camera, in the order of the demo script. The full evidence is the other collection (83 requests).\n\nBefore recording:  cd server && npm run db:reset && npm run dev\n\nNothing to configure: baseUrl is http://localhost:4000/api, the two logins store the tokens, and the booking date is calculated by the collection script (the next day the restaurant is open, 19:00-20:30), so the demo can be recorded again without clashing with the previous take.",
+    "name": "SRMS — DEMO (Assignment 2)",
+    "description": "Two runs in one collection.\n\n**00 Setup** always first (it stores the two tokens and works out the booking dates).\n**01 Core story** is the 12-request walkthrough that matches the demo script — enough for the video.\n**02 Brief coverage** adds the rest of the Assignment 2 use cases (user management, menu administration, order editing, booking changes and cancellation, special events, the AI sentiment bonus). Run it when you want to show a bullet from the brief that the core run did not touch.\n\nBefore recording: `cd server && npm run db:reset && npm run dev`. Re-recording is fine without a reset: the pre-request script picks the next day the restaurant is open, and the booking requests use the table the availability query reports as free.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "a1b4c8e0-2201-4b7a-9d31-srms22010003"
   },
@@ -14,10 +14,18 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// pick the next day the restaurant is open (closed Mondays) and a slot inside the opening hours",
+          "// the next day the restaurant is open (closed Mondays) and a slot inside the opening hours",
           "const date = new Date();",
           "do { date.setDate(date.getDate() + 1); } while (date.getDay() === 1);",
           "pm.collectionVariables.set('demoDate', date.toISOString().slice(0, 10));",
+          "// a week later, so the event booking never clashes with the table booking",
+          "const eventDate = new Date(date.getTime());",
+          "eventDate.setDate(eventDate.getDate() + 7);",
+          "pm.collectionVariables.set('eventDate', eventDate.toISOString().slice(0, 10));",
+          "// a Monday, which is the day the restaurant is closed",
+          "const closed = new Date(date.getTime());",
+          "while (closed.getDay() !== 1) closed.setDate(closed.getDate() + 1);",
+          "pm.collectionVariables.set('closedDate', closed.toISOString().slice(0, 10));",
           "pm.collectionVariables.set('demoStart', '19:00');",
           "pm.collectionVariables.set('demoEnd', '20:30');"
         ]
@@ -38,6 +46,14 @@
       "value": ""
     },
     {
+      "key": "newUserToken",
+      "value": ""
+    },
+    {
+      "key": "newUserId",
+      "value": ""
+    },
+    {
       "key": "orderId",
       "value": ""
     },
@@ -46,11 +62,27 @@
       "value": ""
     },
     {
+      "key": "eventId",
+      "value": ""
+    },
+    {
       "key": "tableId",
       "value": ""
     },
     {
+      "key": "dishId",
+      "value": ""
+    },
+    {
       "key": "demoDate",
+      "value": ""
+    },
+    {
+      "key": "closedDate",
+      "value": ""
+    },
+    {
+      "key": "eventDate",
       "value": ""
     },
     {
@@ -64,640 +96,1499 @@
   ],
   "item": [
     {
-      "name": "01 Health and database",
-      "event": [
+      "name": "00 Setup — always run first",
+      "description": "Stores customerToken and adminToken and calculates the booking dates.",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.test('MySQL is connected', () => pm.expect(pm.response.json().database).to.include('connected'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:4000/api/health/db",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "health",
-            "db"
-          ]
-        },
-        "description": "Proves the API is up and MySQL is connected before anything else is shown."
-      }
-    },
-    {
-      "name": "02 Log in as the customer",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.collectionVariables.set('customerToken', pm.response.json().token);",
-              "pm.test('no password in the response', () => pm.expect(pm.response.json().user).to.not.have.property('password'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"demo@srms.dev\",\n  \"password\": \"demo1234\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/auth/login",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "auth",
-            "login"
-          ]
-        },
-        "description": "bcrypt check + a JWT. Say: the password hash never travels back to the client."
-      }
-    },
-    {
-      "name": "03 Log in as the admin",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.collectionVariables.set('adminToken', pm.response.json().token);",
-              "pm.test('the role is admin', () => pm.expect(pm.response.json().user.role).to.eql('admin'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"admin@srms.dev\",\n  \"password\": \"demo1234\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/auth/login",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "auth",
-            "login"
-          ]
-        },
-        "description": "Same endpoint, different role — the role lives in the token."
-      }
-    },
-    {
-      "name": "04 Browse the menu with filters",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.test('every dish matches the filter', () => pm.response.json().items.forEach((i) => pm.expect(i.dietaryTags).to.include('vegetarian')));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:4000/api/menu?category=main&dietary=vegetarian&sort=price",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "menu"
-          ],
-          "query": [
+          "name": "Health and database",
+          "event": [
             {
-              "key": "category",
-              "value": "main"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('MySQL is connected', () => pm.expect(pm.response.json().database).to.include('connected'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/health/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "db"
+              ]
             },
+            "description": "The API is up and MySQL is connected."
+          }
+        },
+        {
+          "name": "Log in as the customer",
+          "event": [
             {
-              "key": "dietary",
-              "value": "vegetarian"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('customerToken', pm.response.json().token);",
+                  "pm.test('no password in the response', () => pm.expect(pm.response.json().user).to.not.have.property('password'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@srms.dev\",\n  \"password\": \"demo1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            {
-              "key": "sort",
-              "value": "price"
-            }
-          ]
-        },
-        "description": "The filters run in SQL (JSON_CONTAINS on dietary_tags), not in JavaScript after the query."
-      }
-    },
-    {
-      "name": "05 Place an order",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
-              "pm.collectionVariables.set('orderId', pm.response.json().order.id);",
-              "pm.test('the server did the money', () => { const o = pm.response.json().order; pm.expect(Number((o.subtotal + o.deliveryFee + o.tax).toFixed(2))).to.eql(o.total); });"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"fulfilment\": \"delivery\",\n  \"deliveryAddress\": \"5 Example Street, London SE1 4PG\",\n  \"items\": [\n    {\n      \"menuItemId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"menuItemId\": 11,\n      \"quantity\": 1\n    }\n  ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/orders",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "orders"
-          ]
-        },
-        "description": "The client sends only dish ids and quantities; the server looks up the prices and adds tax and delivery."
-      }
-    },
-    {
-      "name": "06 Try to set your own total",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"422 response\", () => pm.response.to.have.status(422));",
-              "pm.test('refused with a code', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_FAILED'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"fulfilment\": \"pickup\",\n  \"total\": 0.01,\n  \"items\": [\n    {\n      \"menuItemId\": 1,\n      \"quantity\": 1\n    }\n  ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/orders",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "orders"
-          ]
-        },
-        "description": "The devtools attack: an unknown field is refused because the schemas are strict."
-      }
-    },
-    {
-      "name": "07 Skip a step in the kitchen",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"409 response\", () => pm.response.to.have.status(409));",
-              "pm.test('the workflow is enforced', () => pm.expect(pm.response.json().error.code).to.eql('INVALID_STATUS_TRANSITION'));",
-              "pm.test('the allowed steps come back', () => pm.expect(pm.response.json().error.details.allowed).to.eql(['preparing', 'cancelled']));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{adminToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": \"delivered\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/orders/{{orderId}}/status",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "orders",
-            "{{orderId}}",
-            "status"
-          ]
-        },
-        "description": "pending goes to preparing, not straight to delivered — and the response says what is allowed next."
-      }
-    },
-    {
-      "name": "08 Find a free table",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.collectionVariables.set('tableId', pm.response.json().tables[0].id);",
-              "pm.test('free tables are returned', () => pm.expect(pm.response.json().tables).to.be.an('array').that.isNotEmpty());"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:4000/api/reservations/availability?date=%7B%7BdemoDate%7D%7D&startTime=%7B%7BdemoStart%7D%7D&endTime=%7B%7BdemoEnd%7D%7D&partySize=4",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "reservations",
-            "availability"
-          ],
-          "query": [
-            {
-              "key": "date",
-              "value": "{{demoDate}}"
+            "url": {
+              "raw": "http://localhost:4000/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
+            "description": "bcrypt check, then a JWT. The password hash never travels back to the client."
+          }
+        },
+        {
+          "name": "Log in as the admin",
+          "event": [
             {
-              "key": "startTime",
-              "value": "{{demoStart}}"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('adminToken', pm.response.json().token);",
+                  "pm.test('the role is admin', () => pm.expect(pm.response.json().user.role).to.eql('admin'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@srms.dev\",\n  \"password\": \"demo1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            {
-              "key": "endTime",
-              "value": "{{demoEnd}}"
+            "url": {
+              "raw": "http://localhost:4000/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
+            "description": "Same endpoint, different role — the role is inside the token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 Core story — the demo walkthrough",
+      "description": "The shortest run that shows the design: sessions, server-side pricing, validation, the kitchen workflow, the double-booking guard, the assistant, the dashboard and the role check.",
+      "item": [
+        {
+          "name": "Browse the menu with SQL filters",
+          "event": [
             {
-              "key": "partySize",
-              "value": "4"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('every dish matches', () => pm.response.json().items.forEach((i) => pm.expect(i.dietaryTags).to.include('vegetarian')));"
+                ]
+              }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/menu?category=main&dietary=vegetarian&sort=price",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "main"
+                },
+                {
+                  "key": "dietary",
+                  "value": "vegetarian"
+                },
+                {
+                  "key": "sort",
+                  "value": "price"
+                }
+              ]
+            },
+            "description": "The filter is SQL (JSON_CONTAINS on dietary_tags), not a JavaScript filter after the query."
+          }
         },
-        "description": "Tables that seat the party and have no overlapping booking, for the calculated date. The first one is captured as {{tableId}}."
-      }
-    },
-    {
-      "name": "09 Book it",
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
-              "pm.collectionVariables.set('reservationId', pm.response.json().reservation.id);",
-              "pm.test('a table was assigned', () => pm.expect(pm.response.json().reservation.table).to.exist);"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"date\": \"{{demoDate}}\",\n  \"startTime\": \"{{demoStart}}\",\n  \"endTime\": \"{{demoEnd}}\",\n  \"partySize\": 4,\n  \"type\": \"standard\",\n  \"tableId\": \"{{tableId}}\",\n  \"contact\": {\n    \"name\": \"Demo Guest\",\n    \"email\": \"demo@srms.dev\",\n    \"phone\": \"+44 20 7946 0111\"\n  }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/reservations",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "reservations"
-          ]
-        },
-        "description": "The table from request 08 is booked inside a transaction. Re-recordable: each take picks the next free table."
-      }
-    },
-    {
-      "name": "10 Book the same table again",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"409 response\", () => pm.response.to.have.status(409));",
-              "pm.test('the clash names the booking', () => pm.expect(pm.response.json().error.details.conflictReference).to.be.a('string'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"date\": \"{{demoDate}}\",\n  \"startTime\": \"{{demoStart}}\",\n  \"endTime\": \"{{demoEnd}}\",\n  \"partySize\": 4,\n  \"tableId\": \"{{tableId}}\",\n  \"contact\": {\n    \"name\": \"Greedy Greg\",\n    \"email\": \"greg@example.com\",\n    \"phone\": \"+44 20 7946 0112\"\n  }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/reservations",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "reservations"
-          ]
-        },
-        "description": "The double-booking guard: SELECT ... FOR UPDATE in reservationService.js."
-      }
-    },
-    {
-      "name": "11 Ask the AI assistant",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.test('the answer is backed by orders', () => pm.expect(pm.response.json().sources).to.include('order_items'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"question\": \"What do you recommend?\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/ai/ask",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "ai",
-            "ask"
-          ]
-        },
-        "description": "The answer is built by ordering real order_items rows, so it changes with the data."
-      }
-    },
-    {
-      "name": "12 Ask what I ordered last time",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.test('it read the orders table', () => pm.expect(pm.response.json().sources).to.include('orders'));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"question\": \"What did I order last time?\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4000/api/ai/ask",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "ai",
-            "ask"
-          ]
-        },
-        "description": "Personal answers need the token: a guest is asked to sign in instead."
-      }
-    },
-    {
-      "name": "13 Admin dashboard figures",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
-              "pm.test('the breakdown adds up to the headline', () => { const b = pm.response.json(); const sum = b.statusBreakdown.filter((r) => r.status !== 'cancelled').reduce((a, r) => a + r.revenue, 0); pm.expect(Number(sum.toFixed(2))).to.eql(b.orders.revenue); });"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{adminToken}}"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:4000/api/admin/stats?days=30",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "admin",
-            "stats"
-          ],
-          "query": [
+          "name": "Place an order (the server does the money)",
+          "event": [
             {
-              "key": "days",
-              "value": "30"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('orderId', pm.response.json().order.id);",
+                  "pm.test('the totals add up', () => { const o = pm.response.json().order; pm.expect(Number((o.subtotal + o.deliveryFee + o.tax).toFixed(2))).to.eql(o.total); });"
+                ]
+              }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fulfilment\": \"delivery\",\n  \"deliveryAddress\": \"5 Example Street, London SE1 4PG\",\n  \"items\": [\n    {\n      \"menuItemId\": 1,\n      \"quantity\": 2\n    },\n    {\n      \"menuItemId\": 11,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Only ids and quantities are sent; tax and the delivery fee are added server-side."
+          }
         },
-        "description": "SQL aggregates. Point out that the new order from request 05 and the booking from 09 are already counted."
-      }
-    },
-    {
-      "name": "14 A customer may not change the menu",
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"403 response\", () => pm.response.to.have.status(403));",
-              "pm.test('role enforced in the middleware', () => pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN'));"
-            ]
+          "name": "Try to set your own total",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 response\", () => pm.response.to.have.status(422));",
+                  "pm.test('refused with a machine-readable code', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_FAILED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fulfilment\": \"pickup\",\n  \"total\": 0.01,\n  \"items\": [\n    {\n      \"menuItemId\": 1,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "The devtools attack: strict schemas refuse the unknown field."
+          }
+        },
+        {
+          "name": "Skip a step in the kitchen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 response\", () => pm.response.to.have.status(409));",
+                  "pm.test('the workflow is enforced', () => pm.expect(pm.response.json().error.code).to.eql('INVALID_STATUS_TRANSITION'));",
+                  "pm.test('the allowed steps come back', () => pm.expect(pm.response.json().error.details.allowed).to.eql(['preparing', 'cancelled']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"delivered\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/orders/{{orderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "status"
+              ]
+            },
+            "description": "pending does not jump to delivered, and the response says what is allowed next."
+          }
+        },
+        {
+          "name": "Find a free table",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tableId', pm.response.json().tables[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/reservations/availability?date=%7B%7BdemoDate%7D%7D&startTime=%7B%7BdemoStart%7D%7D&endTime=%7B%7BdemoEnd%7D%7D&partySize=4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations",
+                "availability"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "{{demoDate}}"
+                },
+                {
+                  "key": "startTime",
+                  "value": "{{demoStart}}"
+                },
+                {
+                  "key": "endTime",
+                  "value": "{{demoEnd}}"
+                },
+                {
+                  "key": "partySize",
+                  "value": "4"
+                }
+              ]
+            },
+            "description": "Tables that seat the party with no overlapping booking; the first is captured as {{tableId}}."
+          }
+        },
+        {
+          "name": "Book that table",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('reservationId', pm.response.json().reservation.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{demoDate}}\",\n  \"startTime\": \"{{demoStart}}\",\n  \"endTime\": \"{{demoEnd}}\",\n  \"partySize\": 4,\n  \"type\": \"standard\",\n  \"tableId\": \"{{tableId}}\",\n  \"contact\": {\n    \"name\": \"Demo Guest\",\n    \"email\": \"demo@srms.dev\",\n    \"phone\": \"+44 20 7946 0111\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations"
+              ]
+            },
+            "description": "Written inside a transaction; a second take of the video books the next free table instead."
+          }
+        },
+        {
+          "name": "Book the same table for the same slot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 response\", () => pm.response.to.have.status(409));",
+                  "pm.test('the clash is identified', () => pm.expect(pm.response.json().error.details.conflictReference).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{demoDate}}\",\n  \"startTime\": \"{{demoStart}}\",\n  \"endTime\": \"{{demoEnd}}\",\n  \"partySize\": 4,\n  \"tableId\": \"{{tableId}}\",\n  \"contact\": {\n    \"name\": \"Greedy Greg\",\n    \"email\": \"greg@example.com\",\n    \"phone\": \"+44 20 7946 0112\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations"
+              ]
+            },
+            "description": "SELECT ... FOR UPDATE in reservationService.js; the clash comes back with its reference."
+          }
+        },
+        {
+          "name": "Ask the assistant what to eat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('backed by order data', () => pm.expect(pm.response.json().sources).to.include('order_items'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What do you recommend?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/ai/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "ask"
+              ]
+            },
+            "description": "The answer ranks real order_items rows, so it changes when the data changes."
+          }
+        },
+        {
+          "name": "Ask what I ordered last time",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('read from the orders table', () => pm.expect(pm.response.json().sources).to.include('orders'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What did I order last time?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/ai/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "ask"
+              ]
+            },
+            "description": "Personal answers need the token; a guest is asked to sign in instead."
+          }
+        },
+        {
+          "name": "Admin dashboard figures",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('the breakdown adds up to the headline', () => { const b = pm.response.json(); const sum = b.statusBreakdown.filter((r) => r.status !== 'cancelled').reduce((a, r) => a + r.revenue, 0); pm.expect(Number(sum.toFixed(2))).to.eql(b.orders.revenue); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/admin/stats?days=30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "SQL aggregates — and the order and booking from a few requests ago are already counted."
+          }
+        },
+        {
+          "name": "A customer cannot change the menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 response\", () => pm.response.to.have.status(403));",
+                  "pm.test('role enforced before the controller', () => pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Truffle Pizza\",\n  \"category\": \"main\",\n  \"description\": \"Added by the demo collection so it can be changed and removed again.\",\n  \"price\": 19.5,\n  \"ingredients\": [\n    \"flour\",\n    \"tomato\",\n    \"mozzarella\",\n    \"truffle oil\"\n  ],\n  \"allergens\": [\n    \"gluten\",\n    \"dairy\"\n  ],\n  \"dietaryTags\": [\n    \"vegetarian\"\n  ],\n  \"available\": true,\n  \"todaySpecial\": false,\n  \"emoji\": \"🍕\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "description": "The same endpoint answers 201 for the admin token: the role check is middleware, not a form."
           }
         }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Authorization",
-            "value": "Bearer {{customerToken}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Not allowed\",\n  \"category\": \"main\",\n  \"description\": \"role check\",\n  \"price\": 1,\n  \"ingredients\": [],\n  \"allergens\": [],\n  \"dietaryTags\": [],\n  \"available\": true,\n  \"todaySpecial\": false,\n  \"emoji\": null\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+      ]
+    },
+    {
+      "name": "02 Brief coverage — the rest of the use cases",
+      "description": "Run after 00 and 01 (it reuses their ids). One request per Assignment 2 bullet the core run did not show.",
+      "item": [
+        {
+          "name": "Register a new account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('newUserId', pm.response.json().user.id);",
+                  "pm.collectionVariables.set('newUserToken', pm.response.json().token);"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Newcomer\",\n  \"email\": \"demo.newcomer@example.com\",\n  \"password\": \"demo1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "User management: bcrypt hash, then a token. A duplicate email would be a 409."
           }
         },
-        "url": {
-          "raw": "http://localhost:4000/api/menu",
-          "host": [
-            "{{baseUrl}}"
+        {
+          "name": "Read my own profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('no hash', () => pm.expect(pm.response.json()).to.not.have.property('password_hash'));"
+                ]
+              }
+            }
           ],
-          "path": [
-            "menu"
-          ]
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Customers see their own account; the password hash is never in the response."
+          }
         },
-        "description": "The last slide: the same API answers 403 for the customer token and 201 for the admin token."
-      }
+        {
+          "name": "Update my profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('saved', () => pm.expect(pm.response.json().phone).to.eql('+44 20 7946 0123'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+44 20 7946 0123\",\n  \"dietaryTags\": [\n    \"vegetarian\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Only whitelisted fields can be written."
+          }
+        },
+        {
+          "name": "Somebody else’s profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 response\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/users/3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "3"
+              ]
+            },
+            "description": "Authorization: the owner or an administrator only."
+          }
+        },
+        {
+          "name": "Administrator lists the accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/users?search=srms.dev",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "srms.dev"
+                }
+              ]
+            },
+            "description": "The search runs in SQL; administrators can moderate accounts."
+          }
+        },
+        {
+          "name": "Administrator adds a dish",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('dishId', pm.response.json().item.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Truffle Pizza\",\n  \"category\": \"main\",\n  \"description\": \"Added by the demo collection so it can be changed and removed again.\",\n  \"price\": 19.5,\n  \"ingredients\": [\n    \"flour\",\n    \"tomato\",\n    \"mozzarella\",\n    \"truffle oil\"\n  ],\n  \"allergens\": [\n    \"gluten\",\n    \"dairy\"\n  ],\n  \"dietaryTags\": [\n    \"vegetarian\"\n  ],\n  \"available\": true,\n  \"todaySpecial\": false,\n  \"emoji\": \"🍕\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "description": "Menu management, the side of it the customer just failed."
+          }
+        },
+        {
+          "name": "Administrator changes the price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('saved', () => pm.expect(pm.response.json().item.price).to.eql(21.75));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 21.75,\n  \"todaySpecial\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/menu/{{dishId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "{{dishId}}"
+              ]
+            },
+            "description": "Only one dish may be today's special — the previous one is switched off in the same transaction."
+          }
+        },
+        {
+          "name": "Administrator removes the dish",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/menu/{{dishId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "{{dishId}}"
+              ]
+            },
+            "description": "Order lines keep their own copy of the name and price, so history survives."
+          }
+        },
+        {
+          "name": "Change the basket (quantities)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('one line now', () => pm.expect(pm.response.json().order.items).to.have.lengthOf(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"menuItemId\": 1,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/orders/{{orderId}}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "items"
+              ]
+            },
+            "description": "Add, remove and change quantities; the totals are recalculated from the database."
+          }
+        },
+        {
+          "name": "Read the order details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "description": "The line items come back with the prices paid at the time."
+          }
+        },
+        {
+          "name": "My orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/orders?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Scoped to the signed-in customer; an administrator gets every order."
+          }
+        },
+        {
+          "name": "Read one booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/reservations/{{reservationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations",
+                "{{reservationId}}"
+              ]
+            },
+            "description": "Reservation management: view."
+          }
+        },
+        {
+          "name": "Change the party size",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('party size changed', () => pm.expect(pm.response.json().reservation.partySize).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"partySize\": 2,\n  \"requirements\": \"Window seat if possible\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/reservations/{{reservationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations",
+                "{{reservationId}}"
+              ]
+            },
+            "description": "The table is re-checked against the new party size."
+          }
+        },
+        {
+          "name": "Cancel the booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/reservations/{{reservationId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations",
+                "{{reservationId}}",
+                "status"
+              ]
+            },
+            "description": "A cancelled booking frees the slot again, which is why the clash guard is a query and not a unique index."
+          }
+        },
+        {
+          "name": "Book a corporate event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 response\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('eventId', pm.response.json().reservation.id);",
+                  "pm.test('event requests wait for approval', () => pm.expect(pm.response.json().reservation.status).to.eql('pending'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{eventDate}}\",\n  \"startTime\": \"{{demoStart}}\",\n  \"endTime\": \"21:30\",\n  \"partySize\": 8,\n  \"type\": \"corporate\",\n  \"occasion\": \"Northwind Traders summer party\",\n  \"requirements\": \"Projector and two vegetarian plates\",\n  \"menuSelection\": [\n    1,\n    2,\n    11\n  ],\n  \"contact\": {\n    \"name\": \"Northwind Traders\",\n    \"email\": \"events@northwind.example\",\n    \"phone\": \"+44 20 7946 0200\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "Event management: the same booking rules, plus occasion, requirements and a menu selection."
+          }
+        },
+        {
+          "name": "Administrator approves the event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/events/{{eventId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}",
+                "status"
+              ]
+            },
+            "description": "The admin dashboard API also manages bookings and events, not only reports on them."
+          }
+        },
+        {
+          "name": "Analyse the feedback sentiment (AI bonus)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));",
+                  "pm.test('rows labelled', () => pm.expect(pm.response.json().breakdown).to.be.an('array').that.isNotEmpty());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/admin/feedback/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "feedback",
+                "analyze"
+              ]
+            },
+            "description": "Explainable classifier: the rating plus a food-service lexicon, and each verdict reports why."
+          }
+        },
+        {
+          "name": "Written feedback brief",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/admin/feedback/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "feedback",
+                "summary"
+              ]
+            },
+            "description": "Local rules by default; ?provider=ai asks an external model and falls back if it is unavailable."
+          }
+        },
+        {
+          "name": "Book on a closed day",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"422 response\", () => pm.response.to.have.status(422));",
+                  "pm.test('the reason is legible', () => pm.expect(pm.response.json().error.message).to.match(/closed/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{closedDate}}\",\n  \"startTime\": \"19:00\",\n  \"endTime\": \"20:30\",\n  \"partySize\": 2,\n  \"contact\": {\n    \"name\": \"Night Owl\",\n    \"email\": \"owl@example.com\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations"
+              ]
+            },
+            "description": "Reservation validation: the opening hours live in config and are checked on every booking."
+          }
+        },
+        {
+          "name": "Administrator removes the new account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 response\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/api/users/{{newUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{newUserId}}"
+              ]
+            },
+            "description": "User management, the last verb. Deleting the last administrator would be a 409."
+          }
+        }
+      ]
     }
   ]
 }
