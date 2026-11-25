@@ -234,12 +234,23 @@ There are **two collections**, and that is deliberate:
 
 | File | Requests | Use |
 | --- | --- | --- |
-| `SRMS-demo.postman_collection.json` | 14 | what you put on screen — one request per point in the demo script, numbered 01-14 |
+| `SRMS-demo.postman_collection.json` | 34 in 3 folders (14 of them are the core walkthrough) | what you put on screen |
 | `SRMS.postman_collection.json` | 83 | the evidence — every advertised endpoint (48), including the boring guards |
 
-The demo collection is **re-recordable**: a collection pre-request script works out the next day the restaurant
-is open and books the first table the availability query says is free, so a second take of the video does not
-clash with the first. The full collection uses fixed dates in 2030, so it does need `npm run db:reset` first.
+The demo collection is split so you never have to scroll:
+
+| Folder | Requests | When |
+| --- | --- | --- |
+| **00 Setup** | 3 | always run first — stores both tokens and calculates the dates |
+| **01 Core story** | 11 | the video walkthrough: pricing, validation, workflow, booking clash, assistant, dashboard, role check |
+| **02 Brief coverage** | 20 | one request per Assignment 2 bullet the core run did not touch: user CRUD, menu administration, order editing, booking change/cancel, special events, the sentiment bonus, the closed-day rule |
+
+It is **re-recordable**: the pre-request script works out the next day the restaurant is open and the booking
+requests use the table the availability query reports as free, so a second take books a different table
+instead of clashing with the first. Verified: core path 14/14, full path 34/34, three takes in a row with no
+reset. If you record several takes in the same day, run `npm run db:reset` once the free tables run out (about
+three bookings at 19:00 before the slot is full). The full collection uses fixed dates in 2030, so it always
+needs a reset first.
 
 Files: [`docs/postman/SRMS.postman_collection.json`](postman/SRMS.postman_collection.json) and
 `SRMS.postman_environment.json` — 83 requests in 10 folders, covering **every endpoint the API advertises**
@@ -260,11 +271,17 @@ cd server && npm run db:reset && npm run dev      # MySQL + the API on http://lo
 
 ### Running it
 
-For the presentation, import `SRMS-demo…json` and either press **Run collection** or send them one at a time
-while talking: `01 health → 02/03 log in → 04 menu filters → 05 place an order → 06 refuse a made-up total →
-07 refuse a skipped kitchen step → 08/09/10 availability, booking, double-booking clash → 11/12 the assistant →
-13 the dashboard, which already counts the order and the booking from 05 and 09 → 14 the same menu POST as a
-customer: 403`.
+For the presentation, import `SRMS-demo…json`, run **00 Setup**, then **01 Core story**: menu filter → order →
+refused made-up total → refused skipped step → availability → booking → double-booking clash → assistant ×2 →
+dashboard (which already counts the order and the booking) → the same menu POST answered 403 for the customer.
+
+Then **02 Brief coverage** if the marker asks "where is user management / event booking / cancellation?" — each
+request's description says which brief bullet it answers. Headless equivalents:
+
+```bash
+npx newman run docs/postman/SRMS-demo.postman_collection.json          # all 34
+npx newman run docs/postman/SRMS-demo.postman_collection.json --folder "01 Core story"
+```
 
 Run the full collection **top to bottom** — it feeds itself:
 
@@ -324,6 +341,9 @@ The backend was built on feature branches, each merged into `main` with `--no-ff
 ---
 
 ## 11. Demo script for the recording
+
+The Postman requests below are the ones in `SRMS-demo.postman_collection.json`: steps 2-7 use **00 Setup** plus
+**01 Core story**, and step 6 also uses **02 Brief coverage** (the event and the sentiment bonus).
 
 1. **Intro (1 min)** — the repository, the two halves (React client, Express server), the layered structure, why
    `services/` holds the rules.
