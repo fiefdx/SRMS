@@ -230,6 +230,17 @@ skip with a clear message rather than failing obscurely.
 
 ## 9. Postman (5% of the grade)
 
+There are **two collections**, and that is deliberate:
+
+| File | Requests | Use |
+| --- | --- | --- |
+| `SRMS-demo.postman_collection.json` | 14 | what you put on screen — one request per point in the demo script, numbered 01-14 |
+| `SRMS.postman_collection.json` | 83 | the evidence — every advertised endpoint (48), including the boring guards |
+
+The demo collection is **re-recordable**: a collection pre-request script works out the next day the restaurant
+is open and books the first table the availability query says is free, so a second take of the video does not
+clash with the first. The full collection uses fixed dates in 2030, so it does need `npm run db:reset` first.
+
 Files: [`docs/postman/SRMS.postman_collection.json`](postman/SRMS.postman_collection.json) and
 `SRMS.postman_environment.json` — 83 requests in 10 folders, covering **every endpoint the API advertises**
 (48 of them). Every request has a test script; verified end to end against the running API, all 83 return the
@@ -249,7 +260,13 @@ cd server && npm run db:reset && npm run dev      # MySQL + the API on http://lo
 
 ### Running it
 
-Run the folders **top to bottom** — the collection feeds itself:
+For the presentation, import `SRMS-demo…json` and either press **Run collection** or send them one at a time
+while talking: `01 health → 02/03 log in → 04 menu filters → 05 place an order → 06 refuse a made-up total →
+07 refuse a skipped kitchen step → 08/09/10 availability, booking, double-booking clash → 11/12 the assistant →
+13 the dashboard, which already counts the order and the booking from 05 and 09 → 14 the same menu POST as a
+customer: 403`.
+
+Run the full collection **top to bottom** — it feeds itself:
 
 | Folder | What it proves |
 | --- | --- |
